@@ -1,4 +1,4 @@
-package com.company;
+package com.packettracer.grader;
 
 import com.cisco.pt.impl.OptionsManager;
 import com.cisco.pt.ipc.IPCFactory;
@@ -16,12 +16,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-import org.apache.commons.cli.*;
-
-public class Main {
+public class Grader {
 
 
-    public Main(PacketTracerSession session) {
+    public Grader(PacketTracerSession session) {
     }
 
     public static void main(String[] args)

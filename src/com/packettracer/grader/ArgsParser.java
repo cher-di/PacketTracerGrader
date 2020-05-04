@@ -1,8 +1,7 @@
-package com.company;
+package com.packettracer.grader;
 
 import org.apache.commons.cli.*;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -104,6 +103,7 @@ public class ArgsParser {
         for (ArgsNames name : ArgsNames.values()) {
             String argName = name.getArgName();
             String argValue = cmd.getOptionValue(argName);
+            System.out.println(argName + " " + argValue);
             if (argValue != null) {
                 args.put(name, argValue);
             }
