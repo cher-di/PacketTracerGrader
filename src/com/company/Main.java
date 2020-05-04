@@ -1,7 +1,6 @@
 package com.company;
 
 import com.cisco.pt.impl.OptionsManager;
-import com.cisco.pt.ipc.IPCError;
 import com.cisco.pt.ipc.IPCFactory;
 import com.cisco.pt.ipc.enums.FileOpenReturnValue;
 import com.cisco.pt.ipc.system.ActivityFile;
@@ -15,51 +14,26 @@ import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.TrustAnchor;
 import java.util.List;
 
 import org.apache.commons.cli.*;
 
 public class Main {
-    private static final String HOST = "localhost";
-    private static final int PORT = 39000;
-    private static final int tryCount = 10;
+
 
     public Main(PacketTracerSession session) {
     }
 
     public static void main(String[] args)
             throws Exception {
-        Options options = new Options();
+        ArgsParser parser = new ArgsParser();
+        var parsedArgs = parser.parse(args);
 
-        Option optionFilepath = new Option("f", "filepath", true, "Path to activity file");
-        optionFilepath.setArgName("filepath");
-        optionFilepath.setOptionalArg(false);
-        optionFilepath.setRequired(true);
-        optionFilepath.setType(String.class);
-        options.addOption(optionFilepath);
-
-        Option optionPassword = new Option("p", "password", true, "Password for activity file");
-        optionPassword.setArgName("password");
-        optionPassword.setOptionalArg(false);
-        optionPassword.setRequired(true);
-        optionPassword.setType(String.class);
-        options.addOption(optionPassword);
-
-        CommandLineParser parser = new DefaultParser();
-        HelpFormatter formatter = new HelpFormatter();
-        CommandLine cmd = null;
-
-        try {
-            cmd = parser.parse(options, args);
-        } catch (ParseException e) {
-            System.out.println(e.getMessage());
-            formatter.printHelp("PacketTracerGrader", options);
-            System.exit(1);
-        }
-
-        String filepath = cmd.getOptionValue("filepath");
-        String password = cmd.getOptionValue("password");
+        String filepath = parsedArgs.get(ArgsNames.FILEPATH);
+        String password = parsedArgs.get(ArgsNames.PASSWORD);
+        int port = Integer.parseInt(parsedArgs.get(ArgsNames.PORT));
+        String host = parsedArgs.get(ArgsNames.HOST);
+        int connectionAttemptsNumber = Integer.parseInt(parsedArgs.get(ArgsNames.CONNECTION_ATTEMPTS_NUMBER));
 
         // Get activity file path
         var file = new File(filepath);
@@ -79,19 +53,19 @@ public class Main {
         ConnectionNegotiationProperties cnp = OptionsManager.getInstance().getConnectOpts();
 
         // Modify the default options to specify your application parameters
-        cnp.setAuthenticationSecret("cisco");
-        cnp.setAuthenticationApplication("com.company.grader");
+        cnp.setAuthenticationSecret(Constants.AUTH_SECRET);
+        cnp.setAuthenticationApplication(Constants.AUTH_APP);
         cnp.setAuthentication(ConnectionNegotiationProperties.MD5_AUTH);
 
         PacketTracerSession packetTracerSession = null;
-        for (int i = tryCount; i > 0; i--) {
+        for (int i = connectionAttemptsNumber; i > 0; i--) {
             try {
                 // Create a PT session
-                packetTracerSession = packetTracerSessionFactory.openSession(HOST, PORT, cnp);
+                packetTracerSession = packetTracerSessionFactory.openSession(host, port, cnp);
             } catch (Error e) {
                 System.out.println("Can not connect to Packet Tracer");
                 if (i > 1) {
-                    System.out.println("Trying to reconnect... Left connection times: " + i);
+                    System.out.println("Trying to reconnect... Left connection times: " + (i - 1));
                     Thread.sleep(500);
                 } else {
                     System.out.println("No more connection times. Exit program.");
