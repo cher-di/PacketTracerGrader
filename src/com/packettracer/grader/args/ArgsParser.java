@@ -1,5 +1,6 @@
 package com.packettracer.grader.args;
 
+import com.packettracer.grader.exceptions.ParseError;
 import org.apache.commons.cli.*;
 
 
