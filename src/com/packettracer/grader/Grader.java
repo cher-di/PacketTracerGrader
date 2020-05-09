@@ -4,7 +4,6 @@ import com.cisco.pt.impl.OptionsManager;
 import com.cisco.pt.ipc.IPCFactory;
 import com.cisco.pt.ipc.enums.FileOpenReturnValue;
 import com.cisco.pt.ipc.system.ActivityFile;
-import com.cisco.pt.ipc.system.IPPool;
 import com.cisco.pt.ipc.ui.IPC;
 import com.cisco.pt.ptmp.ConnectionNegotiationProperties;
 import com.cisco.pt.ptmp.PacketTracerSession;
@@ -48,7 +47,8 @@ public class Grader {
         String password = parsedArgs.getKey();
         String host = parsedArgs.getHost();
         int port = parsedArgs.getPort();
-        int connectionAttemptsNumber = parsedArgs.getConnectionAttemptsNumber();
+        int attempts = parsedArgs.getAttempts();
+        int delay = parsedArgs.getDelay();
 
         // Get canonical source file path
         try {
@@ -73,7 +73,7 @@ public class Grader {
 
         PacketTracerSession packetTracerSession = null;
         try {
-            for (int i = connectionAttemptsNumber; i > 0; i--) {
+            for (int i = attempts; i > 0; i--) {
                 try {
                     // Create a PT session
                     packetTracerSession = packetTracerSessionFactory.openSession(host, port, cnp);
@@ -81,9 +81,9 @@ public class Grader {
                     System.out.println("Can not connect to Packet Tracer");
                     if (i > 1) {
                         System.out.println("Trying to reconnect... Left connection times: " + (i - 1));
-                        Thread.sleep(500);
+                        Thread.sleep(delay);
                     } else {
-                        throw new ConnectionError(String.format("Unable to connect to %s:%s", host, port));
+                        throw new ConnectionError(String.format("Unable to connect to %s:%s", host, port), e);
                     }
                     continue;
                 }
@@ -97,7 +97,13 @@ public class Grader {
             // Get percentage of completed
 
             // Open activity file
-            FileOpenReturnValue status = ipc.appWindow().fileOpen(source);
+            FileOpenReturnValue status = null;
+            try {
+                status = ipc.appWindow().fileOpen(source);
+            }
+            catch (Error e) {
+                throw new WrongCredentialsError("Wrong credentials", e);
+            }
             if (status.compareTo(FileOpenReturnValue.FILE_RETURN_OK) != 0) {
                 throw new SourceFileReadingError(String.format("Can not open .pka file: %s", source));
             }
@@ -117,6 +123,7 @@ public class Grader {
                 activityInfo.put("percentageComplete", activityFile.getPercentageComplete());
                 activityInfo.put("percentageCompleteScore", activityFile.getPercentageCompleteScore());
                 activityInfo.put("addInfo", activityFile.getUserProfile().getAddInfo());
+                activityInfo.put("timeElapsed", activityFile.getTimeElapsed());
 
                 try {
                     saveJSON(activityInfo, target);
@@ -127,12 +134,16 @@ public class Grader {
             } else {
                 throw new WrongPasswordError("Wrong password");
             }
+
+            packetTracerSession.close();
+
         } catch (BaseGraderError e) {
             System.out.println(e.getMessage());
             packetTracerSessionFactory.close();
             System.exit(Constants.EXCEPTION_TO_EXIT_STATUS_MAPPING.get(e.getClass()));
-        } finally {
-            packetTracerSession.close();
+        } catch (Exception e) {
+            System.out.println(String.format("Unknown error: %s", e.getMessage()));
+            System.exit(Constants.EXIT_STATUS_GENERAL_ERROR);
         }
     }
 

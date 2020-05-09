@@ -1,5 +1,6 @@
 package com.packettracer.grader.args;
 
+import com.packettracer.grader.Constants;
 import com.packettracer.grader.exceptions.ParseError;
 import org.apache.commons.cli.*;
 
@@ -15,6 +16,7 @@ public class ArgsParser {
     private static final String ARG_NAME_HOST = "host";
     private static final String ARG_NAME_ATTEMPTS = "attempts";
     private static final String ARG_NAME_TARGET = "target";
+    private static final String ARG_NAME_DELAY = "delay";
 
     public ArgsParser() {
         options = new Options();
@@ -49,7 +51,7 @@ public class ArgsParser {
         options.addOption(Option.builder("p")
                 .longOpt(ARG_NAME_PORT)
                 .hasArg(true)
-                .desc("Port to connect to Packet Tracer")
+                .desc(String.format("Port to connect to Packet Tracer (default: %d)", Constants.DEFAULT_PORT))
                 .argName(ARG_NAME_PORT)
                 .required(false)
                 .type(Number.class)
@@ -58,7 +60,7 @@ public class ArgsParser {
         options.addOption(Option.builder("h")
                 .longOpt(ARG_NAME_HOST)
                 .hasArg(true)
-                .desc("Host to connect to Packet Tracer")
+                .desc(String.format("Host to connect to Packet Tracer (default: %s)", Constants.DEFAULT_HOST))
                 .argName(ARG_NAME_HOST)
                 .required(false)
                 .type(String.class)
@@ -67,8 +69,18 @@ public class ArgsParser {
         options.addOption(Option.builder("a")
                 .longOpt(ARG_NAME_ATTEMPTS)
                 .hasArg(true)
-                .desc("Number of connection attempts")
+                .desc(String.format("Number of connection attempts (default: %d)", Constants.DEFAULT_CONNECTION_ATTEMPTS_NUMBER))
                 .argName(ARG_NAME_ATTEMPTS)
+                .required(false)
+                .type(Number.class)
+                .build());
+
+        options.addOption(Option.builder("d")
+                .longOpt(ARG_NAME_DELAY)
+                .hasArg(true)
+                .desc(String.format("Delay between connection attempts in milliseconds, %d <= delay <= %d (default: %d)",
+                        Constants.MIN_CONNECTION_ATTEMPTS_DELAY, Constants.MAX_CONNECTION_ATTEMPTS_DELAY, Constants.DEFAULT_CONNECTION_ATTEMPTS_DELAY))
+                .argName(ARG_NAME_DELAY)
                 .required(false)
                 .type(Number.class)
                 .build());
@@ -86,8 +98,9 @@ public class ArgsParser {
             String host = cmd.getOptionValue(ARG_NAME_HOST);
             String connectionAttemptsNumber = cmd.getOptionValue(ARG_NAME_ATTEMPTS);
             String target = cmd.getOptionValue(ARG_NAME_TARGET);
+            String delay = cmd.getOptionValue(ARG_NAME_DELAY);
 
-            return new Args(filepath, key, target, port, host, connectionAttemptsNumber);
+            return new Args(filepath, key, target, port, host, connectionAttemptsNumber, delay);
         } catch (ParseException e) {
             throw new ParseError(e.getMessage(), e);
         }
