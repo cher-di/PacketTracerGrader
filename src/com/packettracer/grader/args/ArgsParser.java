@@ -1,8 +1,27 @@
 package com.packettracer.grader.args;
 
+import com.cisco.pt.util.Pair;
 import com.packettracer.grader.Constants;
+import com.packettracer.grader.exceptions.ArgumentAlreadyExists;
 import com.packettracer.grader.exceptions.ParseError;
 import org.apache.commons.cli.*;
+
+import java.util.HashMap;
+
+
+interface Parser {
+
+}
+
+@FunctionalInterface
+interface StringParser extends Parser {
+    String parse(String value) throws ParseError;
+}
+
+@FunctionalInterface
+interface IntegerParser extends Parser {
+    Integer parse(String value) throws ParseError;
+}
 
 
 public class ArgsParser {
@@ -10,15 +29,13 @@ public class ArgsParser {
     private final CommandLineParser parser;
     private final HelpFormatter formatter;
 
-    private static final String ARG_NAME_SOURCE = "source";
-    private static final String ARG_NAME_KEY = "key";
-    private static final String ARG_NAME_PORT = "port";
-    private static final String ARG_NAME_HOST = "host";
-    private static final String ARG_NAME_ATTEMPTS = "attempts";
-    private static final String ARG_NAME_TARGET = "target";
-    private static final String ARG_NAME_DELAY = "delay";
+
+
+    private final HashMap<String, Pair<Option, Parser>> arguments;
 
     public ArgsParser() {
+        arguments = new HashMap<>();
+
         options = new Options();
 
         options.addOption(Option.builder("s")
@@ -108,5 +125,14 @@ public class ArgsParser {
 
     public void printHelp() {
         formatter.printHelp("PacketTracerGrader", options);
+    }
+
+    public void addParameter(String argName, Option option, Parser parser) throws ArgumentAlreadyExists {
+        if (arguments.containsKey(argName)) {
+            throw new ArgumentAlreadyExists(argName);
+        }
+        else {
+            arguments.put(argName, new Pair<>(option, parser));
+        }
     }
 }

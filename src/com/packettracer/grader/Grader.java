@@ -14,6 +14,7 @@ import com.google.gson.GsonBuilder;
 import com.packettracer.grader.args.Args;
 import com.packettracer.grader.args.ArgsParser;
 import com.packettracer.grader.exceptions.*;
+import org.apache.commons.cli.Option;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -100,8 +101,7 @@ public class Grader {
             FileOpenReturnValue status = null;
             try {
                 status = ipc.appWindow().fileOpen(source);
-            }
-            catch (Error e) {
+            } catch (Error e) {
                 throw new WrongCredentialsError("Wrong credentials", e);
             }
             if (status.compareTo(FileOpenReturnValue.FILE_RETURN_OK) != 0) {
@@ -173,5 +173,18 @@ public class Grader {
         FileWriter writer = new FileWriter(filepath);
         writer.write(json);
         writer.flush();
+    }
+
+    private static ArgsParser createArgsParser() {
+        ArgsParser parser = new ArgsParser();
+        parser.addParameter(Constants.ARG_NAME_SOURCE,
+                Option.builder("s")
+                        .longOpt(Constants.ARG_NAME_SOURCE)
+                        .hasArg(true)
+                        .desc("Path to activity file")
+                        .argName(Constants.ARG_NAME_SOURCE)
+                        .required(true)
+                        .type(String.class)
+                        .build(), x -> { return x;});
     }
 }
