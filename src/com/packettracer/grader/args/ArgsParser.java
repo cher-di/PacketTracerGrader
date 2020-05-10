@@ -7,106 +7,27 @@ import com.packettracer.grader.exceptions.ParseError;
 import org.apache.commons.cli.*;
 
 import java.util.HashMap;
+import java.util.function.Function;
 
+import static com.packettracer.grader.Constants.ARG_NAME_DELAY;
+import static com.packettracer.grader.Constants.ARG_NAME_TARGET;
 
-interface Parser {
-
-}
-
-@FunctionalInterface
-interface StringParser extends Parser {
-    String parse(String value) throws ParseError;
-}
-
-@FunctionalInterface
-interface IntegerParser extends Parser {
-    Integer parse(String value) throws ParseError;
-}
 
 
 public class ArgsParser {
     private final Options options;
     private final CommandLineParser parser;
     private final HelpFormatter formatter;
-
-
-
-    private final HashMap<String, Pair<Option, Parser>> arguments;
+    private final HashMap<String, Parser> arguments;
 
     public ArgsParser() {
         arguments = new HashMap<>();
-
         options = new Options();
-
-        options.addOption(Option.builder("s")
-                .longOpt(ARG_NAME_SOURCE)
-                .hasArg(true)
-                .desc("Path to activity file")
-                .argName(ARG_NAME_SOURCE)
-                .required(true)
-                .type(String.class)
-                .build());
-
-        options.addOption(Option.builder("k")
-                .longOpt(ARG_NAME_KEY)
-                .hasArg(true)
-                .desc("Key for activity file")
-                .argName(ARG_NAME_KEY)
-                .required(true)
-                .type(String.class)
-                .build());
-
-        options.addOption(Option.builder("t")
-                .longOpt(ARG_NAME_TARGET)
-                .hasArg(true)
-                .desc("Path to file to store results")
-                .argName(ARG_NAME_TARGET)
-                .required(true)
-                .type(String.class)
-                .build());
-
-        options.addOption(Option.builder("p")
-                .longOpt(ARG_NAME_PORT)
-                .hasArg(true)
-                .desc(String.format("Port to connect to Packet Tracer (default: %d)", Constants.DEFAULT_PORT))
-                .argName(ARG_NAME_PORT)
-                .required(false)
-                .type(Number.class)
-                .build());
-
-        options.addOption(Option.builder("h")
-                .longOpt(ARG_NAME_HOST)
-                .hasArg(true)
-                .desc(String.format("Host to connect to Packet Tracer (default: %s)", Constants.DEFAULT_HOST))
-                .argName(ARG_NAME_HOST)
-                .required(false)
-                .type(String.class)
-                .build());
-
-        options.addOption(Option.builder("a")
-                .longOpt(ARG_NAME_ATTEMPTS)
-                .hasArg(true)
-                .desc(String.format("Number of connection attempts (default: %d)", Constants.DEFAULT_CONNECTION_ATTEMPTS_NUMBER))
-                .argName(ARG_NAME_ATTEMPTS)
-                .required(false)
-                .type(Number.class)
-                .build());
-
-        options.addOption(Option.builder("d")
-                .longOpt(ARG_NAME_DELAY)
-                .hasArg(true)
-                .desc(String.format("Delay between connection attempts in milliseconds, %d <= delay <= %d (default: %d)",
-                        Constants.MIN_CONNECTION_ATTEMPTS_DELAY, Constants.MAX_CONNECTION_ATTEMPTS_DELAY, Constants.DEFAULT_CONNECTION_ATTEMPTS_DELAY))
-                .argName(ARG_NAME_DELAY)
-                .required(false)
-                .type(Number.class)
-                .build());
-
         parser = new DefaultParser();
         formatter = new HelpFormatter();
     }
 
-    public Args parse(String[] args) throws ParseError {
+    public HashMap<String, Object> parse(String[] args) throws ParseError {
         try {
             var cmd = parser.parse(options, args);
             String filepath = cmd.getOptionValue(ARG_NAME_SOURCE);
@@ -132,7 +53,7 @@ public class ArgsParser {
             throw new ArgumentAlreadyExists(argName);
         }
         else {
-            arguments.put(argName, new Pair<>(option, parser));
+            arguments.put(argName, parser);
         }
     }
 }

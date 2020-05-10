@@ -13,6 +13,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.packettracer.grader.args.Args;
 import com.packettracer.grader.args.ArgsParser;
+import com.packettracer.grader.args.Parsers;
 import com.packettracer.grader.exceptions.*;
 import org.apache.commons.cli.Option;
 
@@ -24,6 +25,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
 
+
 public class Grader {
 
 
@@ -32,7 +34,7 @@ public class Grader {
 
     public static void main(String[] args) throws Exception {
 
-        ArgsParser parser = new ArgsParser();
+        ArgsParser parser = createArgsParser();
         Args parsedArgs = null;
 
         try {
@@ -175,8 +177,9 @@ public class Grader {
         writer.flush();
     }
 
-    private static ArgsParser createArgsParser() {
+    private static ArgsParser createArgsParser() throws ArgumentAlreadyExists {
         ArgsParser parser = new ArgsParser();
+
         parser.addParameter(Constants.ARG_NAME_SOURCE,
                 Option.builder("s")
                         .longOpt(Constants.ARG_NAME_SOURCE)
@@ -185,6 +188,69 @@ public class Grader {
                         .argName(Constants.ARG_NAME_SOURCE)
                         .required(true)
                         .type(String.class)
-                        .build(), x -> { return x;});
+                        .build(), x -> x);
+
+        parser.addParameter(Constants.ARG_NAME_KEY,
+                Option.builder("k")
+                        .longOpt(Constants.ARG_NAME_KEY)
+                        .hasArg(true)
+                        .desc("Key for activity file")
+                        .argName(Constants.ARG_NAME_KEY)
+                        .required(true)
+                        .type(String.class)
+                        .build(), x -> x);
+
+        parser.addParameter(Constants.ARG_NAME_TARGET,
+                Option.builder("t")
+                        .longOpt(Constants.ARG_NAME_TARGET)
+                        .hasArg(true)
+                        .desc("Path to file to store results")
+                        .argName(Constants.ARG_NAME_TARGET)
+                        .required(true)
+                        .type(String.class)
+                        .build(), x -> x);
+
+        parser.addParameter(Constants.ARG_NAME_PORT,
+                Option.builder("p")
+                        .longOpt(Constants.ARG_NAME_PORT)
+                        .hasArg(true)
+                        .desc(String.format("Port to connect to Packet Tracer (default: %d)", Constants.DEFAULT_PORT))
+                        .argName(Constants.ARG_NAME_PORT)
+                        .required(false)
+                        .type(Number.class)
+                        .build(), Parsers::parsePort);
+
+        parser.addParameter(Constants.ARG_NAME_HOST,
+                Option.builder("h")
+                        .longOpt(Constants.ARG_NAME_HOST)
+                        .hasArg(true)
+                        .desc(String.format("Host to connect to Packet Tracer (default: %s)", Constants.DEFAULT_HOST))
+                        .argName(Constants.ARG_NAME_HOST)
+                        .required(false)
+                        .type(String.class)
+                        .build(), x -> x);
+
+        parser.addParameter(Constants.ARG_NAME_ATTEMPTS,
+                Option.builder("a")
+                        .longOpt(Constants.ARG_NAME_ATTEMPTS)
+                        .hasArg(true)
+                        .desc(String.format("Number of connection attempts (default: %d)", Constants.DEFAULT_CONNECTION_ATTEMPTS_NUMBER))
+                        .argName(Constants.ARG_NAME_ATTEMPTS)
+                        .required(false)
+                        .type(Number.class)
+                        .build(), Parsers::parseAttempts);
+
+        parser.addParameter(Constants.ARG_NAME_DELAY,
+                Option.builder("d")
+                        .longOpt(Constants.ARG_NAME_DELAY)
+                        .hasArg(true)
+                        .desc(String.format("Delay between connection attempts in milliseconds, %d <= delay <= %d (default: %d)",
+                                Constants.MIN_CONNECTION_ATTEMPTS_DELAY, Constants.MAX_CONNECTION_ATTEMPTS_DELAY, Constants.DEFAULT_CONNECTION_ATTEMPTS_DELAY))
+                        .argName(Constants.ARG_NAME_DELAY)
+                        .required(false)
+                        .type(Number.class)
+                        .build(), Parsers::parseDelay);
+
+        return parser;
     }
 }
