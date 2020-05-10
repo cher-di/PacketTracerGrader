@@ -1,5 +1,6 @@
 package com.packettracer.grader;
 
+import com.packettracer.grader.args.exceptions.ParseError;
 import com.packettracer.grader.exceptions.*;
 
 import java.util.Map;
@@ -15,6 +16,14 @@ public interface Constants {
 
     String AUTH_SECRET = "cisco";
     String AUTH_APP = "com.packettracer.grader";
+
+    String ARG_NAME_SOURCE = "source";
+    String ARG_NAME_KEY = "key";
+    String ARG_NAME_PORT = "port";
+    String ARG_NAME_HOST = "host";
+    String ARG_NAME_ATTEMPTS = "attempts";
+    String ARG_NAME_TARGET = "target";
+    String ARG_NAME_DELAY = "delay";
 
     int EXIT_STATUS_GENERAL_ERROR = 1;
     int EXIT_STATUS_ARGUMENTS_PARSING_FAILED = 2;
