@@ -29,8 +29,6 @@ public class ArgsParser {
                 Pair<String, Parser> pair = arguments.get(argName);
                 String arg = pair.getFirst();
                 Parser parser = pair.getSecond();
-                System.out.println(String.format("%s: %s", argName, cmd.getOptionValue(arg)));
-                System.out.println(parser.getClass());
                 var parsed_arg = parser.parse(cmd.getOptionValue(arg));
                 result.put(argName, parsed_arg);
             }
