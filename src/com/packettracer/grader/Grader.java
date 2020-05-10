@@ -11,9 +11,10 @@ import com.cisco.pt.ptmp.PacketTracerSessionFactory;
 import com.cisco.pt.ptmp.impl.PacketTracerSessionFactoryImpl;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.packettracer.grader.args.Args;
 import com.packettracer.grader.args.ArgsParser;
-import com.packettracer.grader.args.Parsers;
+import com.packettracer.grader.args.exceptions.ArgumentAlreadyExists;
+import com.packettracer.grader.args.exceptions.ParseError;
+import com.packettracer.grader.args.parsers.*;
 import com.packettracer.grader.exceptions.*;
 import org.apache.commons.cli.Option;
 
@@ -35,7 +36,7 @@ public class Grader {
     public static void main(String[] args) throws Exception {
 
         ArgsParser parser = createArgsParser();
-        Args parsedArgs = null;
+        HashMap<String, Object> parsedArgs = null;
 
         try {
             parsedArgs = parser.parse(args);
@@ -45,13 +46,13 @@ public class Grader {
             System.exit(Constants.EXIT_STATUS_ARGUMENTS_PARSING_FAILED);
         }
 
-        String source = parsedArgs.getSource();
-        String target = parsedArgs.getTarget();
-        String password = parsedArgs.getKey();
-        String host = parsedArgs.getHost();
-        int port = parsedArgs.getPort();
-        int attempts = parsedArgs.getAttempts();
-        int delay = parsedArgs.getDelay();
+        String source = (String) parsedArgs.get(Constants.ARG_NAME_SOURCE);
+        String target = (String) parsedArgs.get(Constants.ARG_NAME_TARGET);
+        String password = (String) parsedArgs.get(Constants.ARG_NAME_KEY);
+        String host = (String) parsedArgs.get(Constants.ARG_NAME_HOST);
+        Integer port = (Integer) parsedArgs.get(Constants.ARG_NAME_PORT);
+        Integer attempts = (Integer) parsedArgs.get(Constants.ARG_NAME_ATTEMPTS);
+        Integer delay = (Integer) parsedArgs.get(Constants.ARG_NAME_DELAY);
 
         // Get canonical source file path
         try {
@@ -188,7 +189,7 @@ public class Grader {
                         .argName(Constants.ARG_NAME_SOURCE)
                         .required(true)
                         .type(String.class)
-                        .build(), x -> x);
+                        .build(), new DefaultParser());
 
         parser.addParameter(Constants.ARG_NAME_KEY,
                 Option.builder("k")
@@ -198,7 +199,7 @@ public class Grader {
                         .argName(Constants.ARG_NAME_KEY)
                         .required(true)
                         .type(String.class)
-                        .build(), x -> x);
+                        .build(), new DefaultParser());
 
         parser.addParameter(Constants.ARG_NAME_TARGET,
                 Option.builder("t")
@@ -208,7 +209,7 @@ public class Grader {
                         .argName(Constants.ARG_NAME_TARGET)
                         .required(true)
                         .type(String.class)
-                        .build(), x -> x);
+                        .build(), new DefaultParser());
 
         parser.addParameter(Constants.ARG_NAME_PORT,
                 Option.builder("p")
@@ -218,7 +219,7 @@ public class Grader {
                         .argName(Constants.ARG_NAME_PORT)
                         .required(false)
                         .type(Number.class)
-                        .build(), Parsers::parsePort);
+                        .build(), new PortParser());
 
         parser.addParameter(Constants.ARG_NAME_HOST,
                 Option.builder("h")
@@ -228,7 +229,7 @@ public class Grader {
                         .argName(Constants.ARG_NAME_HOST)
                         .required(false)
                         .type(String.class)
-                        .build(), x -> x);
+                        .build(), new HostParser());
 
         parser.addParameter(Constants.ARG_NAME_ATTEMPTS,
                 Option.builder("a")
@@ -238,7 +239,7 @@ public class Grader {
                         .argName(Constants.ARG_NAME_ATTEMPTS)
                         .required(false)
                         .type(Number.class)
-                        .build(), Parsers::parseAttempts);
+                        .build(), new AttemptsParser());
 
         parser.addParameter(Constants.ARG_NAME_DELAY,
                 Option.builder("d")
@@ -249,7 +250,7 @@ public class Grader {
                         .argName(Constants.ARG_NAME_DELAY)
                         .required(false)
                         .type(Number.class)
-                        .build(), Parsers::parseDelay);
+                        .build(), new DelayParser());
 
         return parser;
     }

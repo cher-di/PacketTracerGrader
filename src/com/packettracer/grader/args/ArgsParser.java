@@ -1,24 +1,18 @@
 package com.packettracer.grader.args;
 
 import com.cisco.pt.util.Pair;
-import com.packettracer.grader.Constants;
-import com.packettracer.grader.exceptions.ArgumentAlreadyExists;
-import com.packettracer.grader.exceptions.ParseError;
+import com.packettracer.grader.args.exceptions.ArgumentAlreadyExists;
+import com.packettracer.grader.args.exceptions.ParseError;
 import org.apache.commons.cli.*;
 
 import java.util.HashMap;
-import java.util.function.Function;
-
-import static com.packettracer.grader.Constants.ARG_NAME_DELAY;
-import static com.packettracer.grader.Constants.ARG_NAME_TARGET;
-
 
 
 public class ArgsParser {
     private final Options options;
     private final CommandLineParser parser;
     private final HelpFormatter formatter;
-    private final HashMap<String, Parser> arguments;
+    private final HashMap<String, Pair<String, Parser>> arguments;
 
     public ArgsParser() {
         arguments = new HashMap<>();
@@ -30,15 +24,17 @@ public class ArgsParser {
     public HashMap<String, Object> parse(String[] args) throws ParseError {
         try {
             var cmd = parser.parse(options, args);
-            String filepath = cmd.getOptionValue(ARG_NAME_SOURCE);
-            String key = cmd.getOptionValue(ARG_NAME_KEY);
-            String port = cmd.getOptionValue(ARG_NAME_PORT);
-            String host = cmd.getOptionValue(ARG_NAME_HOST);
-            String connectionAttemptsNumber = cmd.getOptionValue(ARG_NAME_ATTEMPTS);
-            String target = cmd.getOptionValue(ARG_NAME_TARGET);
-            String delay = cmd.getOptionValue(ARG_NAME_DELAY);
-
-            return new Args(filepath, key, target, port, host, connectionAttemptsNumber, delay);
+            HashMap<String, Object> result = new HashMap<>();
+            for (String argName : arguments.keySet()) {
+                Pair<String, Parser> pair = arguments.get(argName);
+                String arg = pair.getFirst();
+                Parser parser = pair.getSecond();
+                System.out.println(String.format("%s: %s", argName, cmd.getOptionValue(arg)));
+                System.out.println(parser.getClass());
+                var parsed_arg = parser.parse(cmd.getOptionValue(arg));
+                result.put(argName, parsed_arg);
+            }
+            return result;
         } catch (ParseException e) {
             throw new ParseError(e.getMessage(), e);
         }
@@ -53,7 +49,8 @@ public class ArgsParser {
             throw new ArgumentAlreadyExists(argName);
         }
         else {
-            arguments.put(argName, parser);
+            arguments.put(argName, new Pair<>(option.getArgName(), parser));
+            options.addOption(option);
         }
     }
 }

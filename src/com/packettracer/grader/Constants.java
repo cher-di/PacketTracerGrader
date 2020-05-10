@@ -1,5 +1,6 @@
 package com.packettracer.grader;
 
+import com.packettracer.grader.args.exceptions.ParseError;
 import com.packettracer.grader.exceptions.*;
 
 import java.util.Map;
