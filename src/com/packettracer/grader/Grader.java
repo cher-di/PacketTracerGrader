@@ -83,12 +83,7 @@ public class Grader {
         Integer delay = (Integer) parsedArgs.get(ARG_NAME_DELAY);
 
         // Get canonical source file path
-        try {
-            File file = new File(source);
-            source = file.getCanonicalPath();
-        } catch (IOException e) {
-            throw new SourceFileReadingError(e.getMessage(), e);
-        }
+        source = formatActivityFilePath(source);
 
         // Prepare for connection
 
@@ -148,16 +143,10 @@ public class Grader {
             // Get percentage
             boolean confirmed = activityFile.confirmPassword(hashedPassword);
             if (confirmed) {
-                HashMap<String, Object> activityInfo = new HashMap<String, Object>();
-                activityInfo.put("name", activityFile.getUserProfile().getName());
-                activityInfo.put("email", activityFile.getUserProfile().getEmail());
-                activityInfo.put("percentageComplete", activityFile.getPercentageComplete());
-                activityInfo.put("percentageCompleteScore", activityFile.getPercentageCompleteScore());
-                activityInfo.put("addInfo", activityFile.getUserProfile().getAddInfo());
-                activityInfo.put("timeElapsed", activityFile.getTimeElapsed());
+                HashMap<String, Object> activityData = getActivityData(activityFile);
 
                 try {
-                    saveJSON(activityInfo, target);
+                    saveJSON(activityData, target);
                 } catch (IOException e) {
                     throw new TargetFileWritingError(e.getMessage(), e);
                 }
@@ -185,25 +174,47 @@ public class Grader {
             array[i] = (byte) (int) salt[i];
         }
 
-        MessageDigest m = MessageDigest.getInstance("MD5");
-        m.update(array);
-        m.update(password.getBytes());
-        byte s[] = m.digest();
-        String result = "";
-        for (int i = 0; i < s.length; i++) {
-            result += Integer.toHexString((0x000000ff & s[i]) | 0xffffff00).substring(6);
+        MessageDigest messageDigest = MessageDigest.getInstance("MD5");
+        messageDigest.update(array);
+        messageDigest.update(password.getBytes());
+        byte[] digest = messageDigest.digest();
+        StringBuilder result = new StringBuilder();
+        for (byte b : digest) {
+            result.append(Integer.toHexString((0x000000ff & b) | 0xffffff00).substring(6));
         }
-        return result.toUpperCase();
+        return result.toString().toUpperCase();
     }
 
-    private static void saveJSON(HashMap<String, Object> activityInfo, String filepath) throws IOException {
+    private static void saveJSON(HashMap<String, Object> activityData, String filepath) throws IOException {
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
                 .create();
-        String json = gson.toJson(activityInfo);
+        String json = gson.toJson(activityData);
         FileWriter writer = new FileWriter(filepath);
         writer.write(json);
         writer.flush();
+    }
+
+    private static HashMap<String, Object> getActivityData(ActivityFile activityFile) {
+        HashMap<String, Object> activityData = new HashMap<String, Object>();
+
+        activityData.put("name", activityFile.getUserProfile().getName());
+        activityData.put("email", activityFile.getUserProfile().getEmail());
+        activityData.put("percentageComplete", activityFile.getPercentageComplete());
+        activityData.put("percentageCompleteScore", activityFile.getPercentageCompleteScore());
+        activityData.put("addInfo", activityFile.getUserProfile().getAddInfo());
+        activityData.put("timeElapsed", activityFile.getTimeElapsed());
+
+        return activityData;
+    }
+
+    private static String formatActivityFilePath(String filepath) throws SourceFileReadingError {
+        try {
+            File file = new File(filepath);
+            return file.getCanonicalPath();
+        } catch (IOException e) {
+            throw new SourceFileReadingError(e.getMessage(), e);
+        }
     }
 
     private static ArgsParser createArgsParser() throws ArgumentAlreadyExists {
