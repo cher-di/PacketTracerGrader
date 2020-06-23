@@ -25,35 +25,28 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 public class Grader {
-    private static final String ARG_NAME_SOURCE = "source";
-    private static final String ARG_NAME_KEY = "key";
-    private static final String ARG_NAME_PORT = "port";
-    private static final String ARG_NAME_HOST = "host";
-    private static final String ARG_NAME_ATTEMPTS = "attempts";
-    private static final String ARG_NAME_TARGET = "target";
-    private static final String ARG_NAME_DELAY = "delay";
+    private enum ArgName {
+        SOURCE("source"),
+        KEY("key"),
+        PORT("port"),
+        HOST("host"),
+        ATTEMPTS("attempts"),
+        TARGET("target"),
+        DELAY("delay");
 
-    private static final Integer EXIT_STATUS_GENERAL_ERROR = 1;
-    private static final Integer EXIT_STATUS_ARGUMENTS_PARSING_FAILED = 2;
-    private static final Integer EXIT_STATUS_SOURCE_FILE_READING_FAILED = 3;
-    private static final Integer EXIT_STATUS_TARGET_FILE_WRITING_FAILED = 4;
-    private static final Integer EXIT_STATUS_UNABLE_TO_CONNECT = 5;
-    private static final Integer EXIT_STATUS_WRONG_PASSWORD = 6;
-    private static final Integer EXIT_STATUS_WRONG_CREDENTIALS = 7;
+        private final String argName;
 
-    private static final Map<Class<? extends BaseGraderError>, Integer> EXCEPTION_TO_EXIT_STATUS_MAPPING = Map.of(
-            BaseGraderError.class, EXIT_STATUS_GENERAL_ERROR,
-            ParseError.class, EXIT_STATUS_ARGUMENTS_PARSING_FAILED,
-            SourceFileReadingError.class, EXIT_STATUS_SOURCE_FILE_READING_FAILED,
-            TargetFileWritingError.class, EXIT_STATUS_TARGET_FILE_WRITING_FAILED,
-            ConnectionError.class, EXIT_STATUS_UNABLE_TO_CONNECT,
-            WrongPasswordError.class, EXIT_STATUS_WRONG_PASSWORD,
-            WrongCredentialsError.class, EXIT_STATUS_WRONG_CREDENTIALS
-    );
+        ArgName(String argName) {
+            this.argName = argName;
+        }
+
+        String getArgName() {
+            return argName;
+        }
+    }
 
     private static final String AUTH_SECRET = "cisco";
     private static final String AUTH_APP = "com.packettracer.grader";
@@ -69,18 +62,18 @@ public class Grader {
         try {
             parsedArgs = parser.parse(args);
         } catch (ParseError e) {
-            System.out.println(e.getMessage());
+            System.err.println(e.getMessage());
             parser.printHelp();
-            System.exit(EXIT_STATUS_ARGUMENTS_PARSING_FAILED);
+            System.exit(Constants.ExitStatus.ARGUMENTS_PARSING_FAILED.getReturnCode());
         }
 
-        String source = (String) parsedArgs.get(ARG_NAME_SOURCE);
-        String target = (String) parsedArgs.get(ARG_NAME_TARGET);
-        String password = (String) parsedArgs.get(ARG_NAME_KEY);
-        String host = (String) parsedArgs.get(ARG_NAME_HOST);
-        Integer port = (Integer) parsedArgs.get(ARG_NAME_PORT);
-        Integer attempts = (Integer) parsedArgs.get(ARG_NAME_ATTEMPTS);
-        Integer delay = (Integer) parsedArgs.get(ARG_NAME_DELAY);
+        String source = (String) parsedArgs.get(ArgName.SOURCE.getArgName());
+        String target = (String) parsedArgs.get(ArgName.TARGET.getArgName());
+        String password = (String) parsedArgs.get(ArgName.KEY.getArgName());
+        String host = (String) parsedArgs.get(ArgName.HOST.getArgName());
+        Integer port = (Integer) parsedArgs.get(ArgName.PORT.getArgName());
+        Integer attempts = (Integer) parsedArgs.get(ArgName.ATTEMPTS.getArgName());
+        Integer delay = (Integer) parsedArgs.get(ArgName.DELAY.getArgName());
 
         // Get canonical source file path
         source = formatActivityFilePath(source);
@@ -158,12 +151,12 @@ public class Grader {
             packetTracerSession.close();
 
         } catch (BaseGraderError e) {
-            System.out.println(e.getMessage());
+            System.err.println(e.getMessage());
             packetTracerSessionFactory.close();
-            System.exit(EXCEPTION_TO_EXIT_STATUS_MAPPING.get(e.getClass()));
+            System.exit(e.getExitStatus().getReturnCode());
         } catch (Exception e) {
-            System.out.println(String.format("Unknown error: %s", e.getMessage()));
-            System.exit(EXIT_STATUS_GENERAL_ERROR);
+            System.err.println(String.format("Unknown error: %s", e.getMessage()));
+            System.exit(Constants.ExitStatus.GENERAL_ERROR.getReturnCode());
         }
     }
 
@@ -220,73 +213,73 @@ public class Grader {
     private static ArgsParser createArgsParser() throws ArgumentAlreadyExists {
         ArgsParser parser = new ArgsParser();
 
-        parser.addParameter(ARG_NAME_SOURCE,
+        parser.addParameter(ArgName.SOURCE.getArgName(),
                 Option.builder("s")
-                        .longOpt(ARG_NAME_SOURCE)
+                        .longOpt(ArgName.SOURCE.getArgName())
                         .hasArg(true)
                         .desc("Path to activity file")
-                        .argName(ARG_NAME_SOURCE)
+                        .argName(ArgName.SOURCE.getArgName())
                         .required(true)
                         .type(String.class)
                         .build(), new DefaultParser());
 
-        parser.addParameter(ARG_NAME_KEY,
+        parser.addParameter(ArgName.KEY.getArgName(),
                 Option.builder("k")
-                        .longOpt(ARG_NAME_KEY)
+                        .longOpt(ArgName.KEY.getArgName())
                         .hasArg(true)
                         .desc("Key for activity file")
-                        .argName(ARG_NAME_KEY)
+                        .argName(ArgName.KEY.getArgName())
                         .required(true)
                         .type(String.class)
                         .build(), new DefaultParser());
 
-        parser.addParameter(ARG_NAME_TARGET,
+        parser.addParameter(ArgName.TARGET.getArgName(),
                 Option.builder("t")
-                        .longOpt(ARG_NAME_TARGET)
+                        .longOpt(ArgName.TARGET.getArgName())
                         .hasArg(true)
                         .desc("Path to file to store results")
-                        .argName(ARG_NAME_TARGET)
+                        .argName(ArgName.TARGET.getArgName())
                         .required(true)
                         .type(String.class)
                         .build(), new DefaultParser());
 
-        parser.addParameter(ARG_NAME_PORT,
+        parser.addParameter(ArgName.PORT.getArgName(),
                 Option.builder("p")
-                        .longOpt(ARG_NAME_PORT)
+                        .longOpt(ArgName.PORT.getArgName())
                         .hasArg(true)
                         .desc(String.format("Port to connect to Packet Tracer (default: %d)", Constants.DEFAULT_PORT))
-                        .argName(ARG_NAME_PORT)
+                        .argName(ArgName.PORT.getArgName())
                         .required(false)
                         .type(Number.class)
                         .build(), new PortParser());
 
-        parser.addParameter(ARG_NAME_HOST,
+        parser.addParameter(ArgName.HOST.getArgName(),
                 Option.builder("h")
-                        .longOpt(ARG_NAME_HOST)
+                        .longOpt(ArgName.HOST.getArgName())
                         .hasArg(true)
                         .desc(String.format("Host to connect to Packet Tracer (default: %s)", Constants.DEFAULT_HOST))
-                        .argName(ARG_NAME_HOST)
+                        .argName(ArgName.HOST.getArgName())
                         .required(false)
                         .type(String.class)
                         .build(), new HostParser());
 
-        parser.addParameter(ARG_NAME_ATTEMPTS,
+        parser.addParameter(ArgName.ATTEMPTS.getArgName(),
                 Option.builder("a")
-                        .longOpt(ARG_NAME_ATTEMPTS)
+                        .longOpt(ArgName.ATTEMPTS.getArgName())
                         .hasArg(true)
                         .desc(String.format("Number of connection attempts (default: %d)", Constants.DEFAULT_CONNECTION_ATTEMPTS_NUMBER))
-                        .argName(ARG_NAME_ATTEMPTS)
+                        .argName(ArgName.ATTEMPTS.getArgName())
                         .required(false)
                         .type(Number.class)
                         .build(), new AttemptsParser());
 
-        parser.addParameter(ARG_NAME_DELAY,
+        parser.addParameter(ArgName.DELAY.getArgName(),
                 Option.builder("d")
-                        .longOpt(ARG_NAME_DELAY)
+                        .longOpt(ArgName.DELAY.getArgName())
                         .hasArg(true)
                         .desc(String.format("Delay between connection attempts in milliseconds, %d <= delay <= %d (default: %d)",
                                 Constants.MIN_CONNECTION_ATTEMPTS_DELAY, Constants.MAX_CONNECTION_ATTEMPTS_DELAY, Constants.DEFAULT_CONNECTION_ATTEMPTS_DELAY))
-                        .argName(ARG_NAME_DELAY)
+                        .argName(ArgName.DELAY.getArgName())
                         .required(false)
                         .type(Number.class)
                         .build(), new DelayParser());
