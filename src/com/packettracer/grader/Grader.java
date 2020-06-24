@@ -46,7 +46,14 @@ public class Grader {
         String getArgName() {
             return argName;
         }
+
+        @Override
+        public String toString() {
+            return getArgName();
+        }
     }
+
+    private static final String APP_NAME = "Packet Tracer Grader";
 
     private static final String AUTH_SECRET = "cisco";
     private static final String AUTH_APP = "com.packettracer.grader";
@@ -55,7 +62,6 @@ public class Grader {
     }
 
     public static void main(String[] args) throws Exception {
-
         ArgsParser parser = createArgsParser();
         HashMap<String, Object> parsedArgs = null;
 
@@ -75,7 +81,23 @@ public class Grader {
         Integer attempts = (Integer) parsedArgs.get(ArgName.ATTEMPTS.getArgName());
         Integer delay = (Integer) parsedArgs.get(ArgName.DELAY.getArgName());
 
-        // Get canonical source file path
+        try {
+            // Grade
+            ActivityData activityData = grade(source, password, host, port, attempts, delay);
+
+            // Save data to JSON
+            activityData.toJsonFile(target);
+
+        } catch (BaseGraderError e) {
+            System.err.println(e.getMessage());
+            System.exit(e.getExitStatus().getReturnCode());
+        } catch (Exception e) {
+            System.err.println(String.format("Unknown error: %s", e.getMessage()));
+            System.exit(Constants.ExitStatus.GENERAL_ERROR.getReturnCode());
+        }
+    }
+
+    public static ActivityData grade(String source, String password, String host, Integer port, Integer attempts, Integer delay) throws Exception {
         source = formatActivityFilePath(source);
 
         // Prepare for connection
@@ -135,28 +157,17 @@ public class Grader {
 
             // Get percentage
             boolean confirmed = activityFile.confirmPassword(hashedPassword);
-            if (confirmed) {
-                HashMap<String, Object> activityData = getActivityData(activityFile);
-
-                try {
-                    saveJSON(activityData, target);
-                } catch (IOException e) {
-                    throw new TargetFileWritingError(e.getMessage(), e);
-                }
-
-            } else {
+            if (!confirmed) {
                 throw new WrongPasswordError("Wrong password");
+            } else {
+                ActivityData activityData = new ActivityData(activityFile);
+                packetTracerSession.close();
+                return activityData;
             }
 
-            packetTracerSession.close();
-
-        } catch (BaseGraderError e) {
-            System.err.println(e.getMessage());
-            packetTracerSessionFactory.close();
-            System.exit(e.getExitStatus().getReturnCode());
         } catch (Exception e) {
-            System.err.println(String.format("Unknown error: %s", e.getMessage()));
-            System.exit(Constants.ExitStatus.GENERAL_ERROR.getReturnCode());
+            packetTracerSessionFactory.close();
+            throw e;
         }
     }
 
@@ -178,29 +189,6 @@ public class Grader {
         return result.toString().toUpperCase();
     }
 
-    private static void saveJSON(HashMap<String, Object> activityData, String filepath) throws IOException {
-        Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .create();
-        String json = gson.toJson(activityData);
-        FileWriter writer = new FileWriter(filepath);
-        writer.write(json);
-        writer.flush();
-    }
-
-    private static HashMap<String, Object> getActivityData(ActivityFile activityFile) {
-        HashMap<String, Object> activityData = new HashMap<String, Object>();
-
-        activityData.put("name", activityFile.getUserProfile().getName());
-        activityData.put("email", activityFile.getUserProfile().getEmail());
-        activityData.put("percentageComplete", activityFile.getPercentageComplete());
-        activityData.put("percentageCompleteScore", activityFile.getPercentageCompleteScore());
-        activityData.put("addInfo", activityFile.getUserProfile().getAddInfo());
-        activityData.put("timeElapsed", activityFile.getTimeElapsed());
-
-        return activityData;
-    }
-
     private static String formatActivityFilePath(String filepath) throws SourceFileReadingError {
         try {
             File file = new File(filepath);
@@ -211,7 +199,7 @@ public class Grader {
     }
 
     private static ArgsParser createArgsParser() throws ArgumentAlreadyExists {
-        ArgsParser parser = new ArgsParser();
+        ArgsParser parser = new ArgsParser(APP_NAME);
 
         parser.addParameter(ArgName.SOURCE.getArgName(),
                 Option.builder("s")

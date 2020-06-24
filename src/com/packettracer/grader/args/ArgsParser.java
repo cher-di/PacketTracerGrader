@@ -13,12 +13,14 @@ public class ArgsParser {
     private final CommandLineParser parser;
     private final HelpFormatter formatter;
     private final HashMap<String, Pair<String, Parser>> arguments;
+    private final String appName;
 
-    public ArgsParser() {
+    public ArgsParser(String appName) {
         arguments = new HashMap<>();
         options = new Options();
         parser = new DefaultParser();
         formatter = new HelpFormatter();
+        this.appName = appName;
     }
 
     public HashMap<String, Object> parse(String[] args) throws ParseError {
@@ -39,7 +41,7 @@ public class ArgsParser {
     }
 
     public void printHelp() {
-        formatter.printHelp("PacketTracerGrader", options);
+        formatter.printHelp(appName, options);
     }
 
     public void addParameter(String argName, Option option, Parser parser) throws ArgumentAlreadyExists {
