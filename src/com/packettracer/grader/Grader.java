@@ -80,26 +80,10 @@ public class Grader {
 
         try {
             // Grade
-            MyRunnable runnable = new MyRunnable(source, password, host, port, attempts, delay);
-            Thread thread = new Thread(runnable);
-            thread.start();
-            Thread.sleep(3000);
-            if (thread.isAlive()) {
-                thread.interrupt();
-                throw new SourceFileReadingError("PacketTracer not support this type of files");
-            }
-            else {
-                ActivityData activityData = runnable.getActivityData();
-                Integer returnCode = runnable.getReturnCode();
+            ActivityData activityData = grade(source, password, host, port, attempts, delay);
 
-                if (returnCode != 0) {
-                    throw new BaseGraderError("Grader failed with exit code " + returnCode.toString());
-                }
-                else {
-                    // Save data to JSON
-                    activityData.toJsonFile(target);
-                }
-            }
+            // Save data to JSON
+            activityData.toJsonFile(target);
         } catch (BaseGraderError e) {
             System.err.println(e.getMessage());
             System.exit(e.getExitStatus().getReturnCode());
@@ -110,80 +94,100 @@ public class Grader {
     }
 
     public static ActivityData grade(String source, String password, String host, Integer port, Integer attempts, Integer delay) throws Exception {
-        source = formatActivityFilePath(source);
+//        source = formatActivityFilePath(source);
+//
+//        // Prepare for connection
+//
+//        // Start by getting an instance of the PT Session factory
+//        PacketTracerSessionFactory packetTracerSessionFactory = PacketTracerSessionFactoryImpl.getInstance();
+//
+//        // Get the options used to connect to PT
+//        ConnectionNegotiationProperties cnp = OptionsManager.getInstance().getConnectOpts();
+//
+//        // Modify the default options to specify your application parameters
+//        cnp.setAuthenticationSecret(AUTH_SECRET);
+//        cnp.setAuthenticationApplication(AUTH_APP);
+//        cnp.setAuthentication(ConnectionNegotiationProperties.MD5_AUTH);
+//
+//        PacketTracerSession packetTracerSession = null;
+//        try {
+//            for (int i = attempts; i > 0; i--) {
+//                try {
+//                    // Create a PT session
+//                    packetTracerSession = packetTracerSessionFactory.openSession(host, port, cnp);
+//                } catch (Error e) {
+//                    System.out.println("Can not connect to Packet Tracer");
+//                    if (i > 1) {
+//                        System.out.println("Trying to reconnect... Left connection times: " + (i - 1));
+//                        Thread.sleep(delay);
+//                    } else {
+//                        throw new ConnectionError(String.format("Unable to connect to %s:%s", host, port), e);
+//                    }
+//                    continue;
+//                }
+//                break;
+//            }
+//
+//            // Get the top level IPC object to communicate with PT
+//            IPCFactory ipcFactory = new IPCFactory(packetTracerSession);
+//            final IPC ipc = ipcFactory.getIPC();
+//
+//            // Get percentage of completed
+//
+//            // Open activity file
+//            FileOpenReturnValue status = null;
+//            try {
+//                status = ipc.appWindow().fileOpen(source);
+//            } catch (Error e) {
+//                throw new WrongCredentialsError("Wrong credentials", e);
+//            }
+//            if (status.compareTo(FileOpenReturnValue.FILE_RETURN_OK) != 0) {
+//                throw new SourceFileReadingError(String.format("Can not open .pka file: %s", source));
+//            }
+//            ActivityFile activityFile = (ActivityFile) ipc.appWindow().getActiveFile();
+//            // TODO если не может открыть файл, то выводит окно, где нужно нажать ОК
+//
+//            // Generate password MD5 hash
+//            List<Integer> challengeKey = activityFile.getChallengeKeyAsInts();
+//            String hashedPassword = hashPassword(password, challengeKey);
+//
+//            // Get percentage
+//            boolean confirmed = activityFile.confirmPassword(hashedPassword);
+//            if (!confirmed) {
+//                throw new WrongPasswordError("Wrong password");
+//            } else {
+//                ActivityData activityData = new ActivityData(activityFile);
+//                packetTracerSession.close();
+//                return activityData;
+//            }
+//
+//        } catch (Exception e) {
+//            packetTracerSession.close();
+//            throw e;
+//        }
 
-        // Prepare for connection
+        MyRunnable runnable = new MyRunnable(source, password, host, port, attempts, delay);
+        Thread thread = new Thread(runnable);
+        thread.start();
+        Thread.sleep(3000);
+        if (thread.isAlive()) {
+            thread.interrupt();
+            throw new SourceFileReadingError("PacketTracer not support this type of files");
+        }
+        else {
+            ActivityData activityData = runnable.getActivityData();
+            Integer returnCode = runnable.getReturnCode();
 
-        // Start by getting an instance of the PT Session factory
-        PacketTracerSessionFactory packetTracerSessionFactory = PacketTracerSessionFactoryImpl.getInstance();
-
-        // Get the options used to connect to PT
-        ConnectionNegotiationProperties cnp = OptionsManager.getInstance().getConnectOpts();
-
-        // Modify the default options to specify your application parameters
-        cnp.setAuthenticationSecret(AUTH_SECRET);
-        cnp.setAuthenticationApplication(AUTH_APP);
-        cnp.setAuthentication(ConnectionNegotiationProperties.MD5_AUTH);
-
-        PacketTracerSession packetTracerSession = null;
-        try {
-            for (int i = attempts; i > 0; i--) {
-                try {
-                    // Create a PT session
-                    packetTracerSession = packetTracerSessionFactory.openSession(host, port, cnp);
-                } catch (Error e) {
-                    System.out.println("Can not connect to Packet Tracer");
-                    if (i > 1) {
-                        System.out.println("Trying to reconnect... Left connection times: " + (i - 1));
-                        Thread.sleep(delay);
-                    } else {
-                        throw new ConnectionError(String.format("Unable to connect to %s:%s", host, port), e);
-                    }
-                    continue;
-                }
-                break;
+            if (returnCode != 0) {
+                throw new BaseGraderError("Grader failed with exit code " + returnCode.toString());
             }
-
-            // Get the top level IPC object to communicate with PT
-            IPCFactory ipcFactory = new IPCFactory(packetTracerSession);
-            final IPC ipc = ipcFactory.getIPC();
-
-            // Get percentage of completed
-
-            // Open activity file
-            FileOpenReturnValue status = null;
-            try {
-                status = ipc.appWindow().fileOpen(source);
-            } catch (Error e) {
-                throw new WrongCredentialsError("Wrong credentials", e);
-            }
-            if (status.compareTo(FileOpenReturnValue.FILE_RETURN_OK) != 0) {
-                throw new SourceFileReadingError(String.format("Can not open .pka file: %s", source));
-            }
-            ActivityFile activityFile = (ActivityFile) ipc.appWindow().getActiveFile();
-            // TODO если не может открыть файл, то выводит окно, где нужно нажать ОК
-
-            // Generate password MD5 hash
-            List<Integer> challengeKey = activityFile.getChallengeKeyAsInts();
-            String hashedPassword = hashPassword(password, challengeKey);
-
-            // Get percentage
-            boolean confirmed = activityFile.confirmPassword(hashedPassword);
-            if (!confirmed) {
-                throw new WrongPasswordError("Wrong password");
-            } else {
-                ActivityData activityData = new ActivityData(activityFile);
-                packetTracerSession.close();
+            else {
                 return activityData;
             }
-
-        } catch (Exception e) {
-            packetTracerSession.close();
-            throw e;
         }
     }
 
-    private static String hashPassword(String password, List<Integer> challengeKey) throws NoSuchAlgorithmException {
+    public static String hashPassword(String password, List<Integer> challengeKey) throws NoSuchAlgorithmException {
         var salt = challengeKey.toArray();
         byte[] array = new byte[salt.length];
         for (int i = 0; i < salt.length; i++) {
@@ -201,7 +205,7 @@ public class Grader {
         return result.toString().toUpperCase();
     }
 
-    private static String formatActivityFilePath(String filepath) throws SourceFileReadingError {
+    public static String formatActivityFilePath(String filepath) throws SourceFileReadingError {
         try {
             File file = new File(filepath);
             return file.getCanonicalPath();
