@@ -7,8 +7,8 @@ public class ExtendedActivityData {
     private final Integer returncode;
     private final ActivityData activityData;
 
-    ExtendedActivityData(String name, String email, Float percentageComplete, Float percentageCompleteScore, String addInfo, Integer timeElapsed, String filepath, Integer retruncode) {
-        this.activityData = new ActivityData(name, email, percentageComplete, percentageCompleteScore, addInfo, timeElapsed);
+    ExtendedActivityData(String name, String email, Float percentageComplete, Float percentageCompleteScore, String addInfo, Integer timeElapsed, String labID, String filepath, Integer retruncode) {
+        this.activityData = new ActivityData(name, email, percentageComplete, percentageCompleteScore, addInfo, timeElapsed, labID);
         this.filepath = filepath;
         this.returncode = retruncode;
     }

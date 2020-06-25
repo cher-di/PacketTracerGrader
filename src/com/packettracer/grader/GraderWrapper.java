@@ -1,5 +1,6 @@
 package com.packettracer.grader;
 
+import com.cisco.pt.launcher.PacketTracerLauncher;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.packettracer.grader.args.ArgsParser;
@@ -44,6 +45,7 @@ public class GraderWrapper {
     private static final Integer DELAY = 500;
     private static final Integer ATTEMPTS = 10;
     private static final String HOST = "localhost";
+    private static final Integer SLEEP_AFTER_LAUNCH = 1000 * 10;
 
     private static class ActivityFileData {
         private final String filepath;
@@ -78,6 +80,11 @@ public class GraderWrapper {
         String output = (String) parsedArgs.get(ArgName.OUTPUT_FILE.getArgName());
         Integer port = (Integer) parsedArgs.get(ArgName.PORT.getArgName());
 
+        // Launch PacketTracer
+        Process packetTracerProcess = launchNewPacketTracer(port);
+        // Sleep after launch to give Packet Tracer time to initialize
+        Thread.sleep(SLEEP_AFTER_LAUNCH);
+
         try {
             // Read data from json file
             List<ActivityFileData> data = readJson(input);
@@ -93,6 +100,10 @@ public class GraderWrapper {
         } catch (Exception e) {
             System.err.println(e.getMessage());
             System.exit(1);
+        }
+        finally {
+            System.out.println("Pisos");
+            packetTracerProcess.destroy();
         }
     }
 
@@ -119,11 +130,17 @@ public class GraderWrapper {
     private static void saveJson(List<ExtendedActivityData> extendedActivityDataList, String filepath) throws IOException {
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
+                .serializeNulls()
                 .create();
         String json = gson.toJson(extendedActivityDataList);
         FileWriter writer = new FileWriter(filepath);
         writer.write(json);
         writer.flush();
+    }
+
+    private static Process launchNewPacketTracer(Integer port) throws Exception {
+        PacketTracerLauncher launcher = PacketTracerLauncher.getInstance();
+        return launcher.launch(port, false);
     }
 
     private static ArgsParser createArgsParser() throws ArgumentAlreadyExists {

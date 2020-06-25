@@ -16,14 +16,18 @@ public class ActivityData {
     private final Float percentageCompleteScore;
     private final String addInfo;
     private final Integer timeElapsed;
+    private final String labID;
 
-    ActivityData(String name, String email, Float percentageComplete, Float percentageCompleteScore, String addInfo, Integer timeElapsed) {
+    private static final String labIDVariableName = "LabID";
+
+    ActivityData(String name, String email, Float percentageComplete, Float percentageCompleteScore, String addInfo, Integer timeElapsed, String labID) {
         this.name = name;
         this.email = email;
         this.percentageComplete = percentageComplete;
         this.percentageCompleteScore = percentageCompleteScore;
         this.addInfo = addInfo;
         this.timeElapsed = timeElapsed;
+        this.labID = labID;
     }
 
     ActivityData(ActivityData other) {
@@ -33,6 +37,7 @@ public class ActivityData {
         this.percentageCompleteScore = other.percentageCompleteScore;
         this.addInfo = other.addInfo;
         this.timeElapsed = other.timeElapsed;
+        this.labID = other.labID;
     }
 
     ActivityData(ActivityFile activityFile) {
@@ -42,6 +47,7 @@ public class ActivityData {
         this.percentageCompleteScore = (float) activityFile.getPercentageCompleteScore();
         this.addInfo = activityFile.getUserProfile().getAddInfo();
         this.timeElapsed = activityFile.getTimeElapsed();
+        this.labID = activityFile.getVariableManager().getVariableByName(labIDVariableName).valueToString();
     }
 
     public static ActivityData fromJsonFile(String filepath) throws FileNotFoundException {
@@ -54,6 +60,7 @@ public class ActivityData {
     public void toJsonFile(String filepath) throws IOException {
         Gson gson = new GsonBuilder()
                 .setPrettyPrinting()
+                .serializeNulls()
                 .create();
         String json = gson.toJson(this);
         FileWriter writer = new FileWriter(filepath);

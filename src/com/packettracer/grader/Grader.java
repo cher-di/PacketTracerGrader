@@ -9,8 +9,6 @@ import com.cisco.pt.ptmp.ConnectionNegotiationProperties;
 import com.cisco.pt.ptmp.PacketTracerSession;
 import com.cisco.pt.ptmp.PacketTracerSessionFactory;
 import com.cisco.pt.ptmp.impl.PacketTracerSessionFactoryImpl;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.packettracer.grader.args.ArgsParser;
 import com.packettracer.grader.args.exceptions.ArgumentAlreadyExists;
 import com.packettracer.grader.args.exceptions.ParseError;
@@ -19,7 +17,6 @@ import com.packettracer.grader.exceptions.*;
 import org.apache.commons.cli.Option;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
