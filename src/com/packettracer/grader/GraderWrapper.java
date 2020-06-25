@@ -7,6 +7,7 @@ import com.packettracer.grader.args.ArgsParser;
 import com.packettracer.grader.args.exceptions.ArgumentAlreadyExists;
 import com.packettracer.grader.args.exceptions.ParseError;
 import com.packettracer.grader.args.parsers.DefaultParser;
+import com.packettracer.grader.args.parsers.HostParser;
 import com.packettracer.grader.args.parsers.PortParser;
 import com.packettracer.grader.exceptions.BaseGraderError;
 import org.apache.commons.cli.Option;
@@ -24,6 +25,7 @@ public class GraderWrapper {
     private enum ArgName {
         INPUT_FILE("input"),
         OUTPUT_FILE("output"),
+        HOST("host"),
         PORT("port");
 
         private final String argName;
@@ -78,6 +80,7 @@ public class GraderWrapper {
 
         String input = (String) parsedArgs.get(ArgName.INPUT_FILE.getArgName());
         String output = (String) parsedArgs.get(ArgName.OUTPUT_FILE.getArgName());
+        String host = (String) parsedArgs.get(ArgName.HOST.getArgName());
         Integer port = (Integer) parsedArgs.get(ArgName.PORT.getArgName());
 
         // Launch PacketTracer
@@ -92,7 +95,7 @@ public class GraderWrapper {
             // Grade
             var extendedActivityDataList = new ArrayList<ExtendedActivityData>();
             for (ActivityFileData activityFileData : data) {
-                extendedActivityDataList.add(grade(activityFileData, port));
+                extendedActivityDataList.add(grade(activityFileData, host, port));
             }
 
             // Save results to JSON file
@@ -102,14 +105,13 @@ public class GraderWrapper {
             System.exit(1);
         }
         finally {
-            System.out.println("Pisos");
             packetTracerProcess.destroy();
         }
     }
 
-    private static ExtendedActivityData grade(ActivityFileData activityFileData, Integer port) throws Exception {
+    private static ExtendedActivityData grade(ActivityFileData activityFileData, String host, Integer port) throws Exception {
         try {
-            ActivityData activityData = Grader.grade(activityFileData.filepath, activityFileData.password, HOST, port, ATTEMPTS, DELAY);
+            ActivityData activityData = Grader.grade(activityFileData.filepath, activityFileData.password, host, port, ATTEMPTS, DELAY);
             return new ExtendedActivityData(activityData, activityFileData.filepath, 0);
         }
         catch (BaseGraderError e) {
@@ -165,6 +167,16 @@ public class GraderWrapper {
                         .required(true)
                         .type(String.class)
                         .build(), new DefaultParser());
+
+        parser.addParameter(ArgName.HOST.getArgName(),
+                Option.builder("h")
+                        .longOpt(ArgName.HOST.getArgName())
+                        .hasArg(true)
+                        .desc("PacketTracer server IP address")
+                        .argName(ArgName.HOST.getArgName())
+                        .required(false)
+                        .type(String.class)
+                        .build(), new HostParser());
 
         parser.addParameter(ArgName.PORT.getArgName(),
                 Option.builder("p")
