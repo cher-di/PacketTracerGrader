@@ -163,7 +163,7 @@ public class Grader {
             }
 
         } catch (Exception e) {
-            packetTracerSessionFactory.close();
+            packetTracerSession.close();
             throw e;
         }
     }
