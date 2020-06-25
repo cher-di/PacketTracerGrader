@@ -80,11 +80,26 @@ public class Grader {
 
         try {
             // Grade
-            ActivityData activityData = grade(source, password, host, port, attempts, delay);
+            MyRunnable runnable = new MyRunnable(source, password, host, port, attempts, delay);
+            Thread thread = new Thread(runnable);
+            thread.start();
+            Thread.sleep(3000);
+            if (thread.isAlive()) {
+                thread.interrupt();
+                throw new SourceFileReadingError("PacketTracer not support this type of files");
+            }
+            else {
+                ActivityData activityData = runnable.getActivityData();
+                Integer returnCode = runnable.getReturnCode();
 
-            // Save data to JSON
-            activityData.toJsonFile(target);
-
+                if (returnCode != 0) {
+                    throw new BaseGraderError("Grader failed with exit code " + returnCode.toString());
+                }
+                else {
+                    // Save data to JSON
+                    activityData.toJsonFile(target);
+                }
+            }
         } catch (BaseGraderError e) {
             System.err.println(e.getMessage());
             System.exit(e.getExitStatus().getReturnCode());
