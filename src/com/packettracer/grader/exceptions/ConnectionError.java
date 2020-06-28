@@ -12,7 +12,7 @@ public class ConnectionError extends GeneralError {
     }
 
     @Override
-    public Integer getExitStatus() {
+    public Integer getReturnCode() {
         return Grader.UNABLE_TO_CONNECT;
     }
 }

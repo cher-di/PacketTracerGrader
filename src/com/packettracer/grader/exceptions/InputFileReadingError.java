@@ -12,7 +12,7 @@ public class InputFileReadingError extends GeneralError {
     }
 
     @Override
-    public Integer getExitStatus() {
+    public Integer getReturnCode() {
         return Grader.INPUT_FILE_READING_FAILED;
     }
 }

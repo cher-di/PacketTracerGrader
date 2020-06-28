@@ -80,7 +80,7 @@ public class Grader {
             activityData.toJsonFile(output);
         } catch (GeneralError e) {
             System.err.println(e.getMessage());
-            System.exit(e.getExitStatus());
+            System.exit(e.getReturnCode());
         } catch (Throwable e) {
             System.err.println(String.format("Unknown error: %s", e.getMessage()));
             System.exit(GENERAL_ERROR);

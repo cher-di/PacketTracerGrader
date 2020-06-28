@@ -12,7 +12,7 @@ public class WrongCredentialsError extends GeneralError {
     }
 
     @Override
-    public Integer getExitStatus() {
+    public Integer getReturnCode() {
         return Grader.WRONG_CREDENTIALS;
     }
 }

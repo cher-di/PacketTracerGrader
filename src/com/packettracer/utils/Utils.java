@@ -35,8 +35,4 @@ public class Utils {
         }
         return result.toString().toUpperCase();
     }
-
-    public static void exitAppWindow(IPC ipc) {
-        ipc.appWindow().exitNoConfirm(true);
-    }
 }

@@ -11,7 +11,7 @@ public class GeneralError extends Exception {
         super(errorMessage, err);
     }
 
-    public Integer getExitStatus() {
+    public Integer getReturnCode() {
         return Grader.GENERAL_ERROR;
     }
 }
