@@ -1,4 +1,4 @@
-package com.packettracer.grader.args.exceptions;
+package com.packettracer.args.exceptions;
 
 public class ArgumentAlreadyExists extends ParseError {
     public ArgumentAlreadyExists(String argName) {

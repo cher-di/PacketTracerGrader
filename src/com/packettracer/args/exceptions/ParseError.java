@@ -1,8 +1,8 @@
-package com.packettracer.grader.args.exceptions;
+package com.packettracer.args.exceptions;
 
-import com.packettracer.grader.exceptions.BaseGraderError;
+import com.packettracer.grader.exceptions.GeneralError;
 
-public class ParseError extends BaseGraderError {
+public class ParseError extends GeneralError {
     public ParseError(String errorMessage) {
         super(errorMessage);
     }

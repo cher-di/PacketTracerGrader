@@ -1,8 +1,8 @@
-package com.packettracer.grader.args;
+package com.packettracer.args;
 
 import com.cisco.pt.util.Pair;
-import com.packettracer.grader.args.exceptions.ArgumentAlreadyExists;
-import com.packettracer.grader.args.exceptions.ParseError;
+import com.packettracer.args.exceptions.ArgumentAlreadyExists;
+import com.packettracer.args.exceptions.ParseError;
 import org.apache.commons.cli.*;
 
 import java.util.HashMap;
@@ -31,8 +31,9 @@ public class ArgsParser {
                 Pair<String, Parser> pair = arguments.get(argName);
                 String arg = pair.getFirst();
                 Parser parser = pair.getSecond();
-                var parsed_arg = parser.parse(cmd.getOptionValue(arg));
-                result.put(argName, parsed_arg);
+
+                Object optionValue = options.getOption(arg).hasArg() ? cmd.getOptionValue(arg) : cmd.hasOption(arg);
+                result.put(argName, parser.parse(optionValue));
             }
             return result;
         } catch (ParseException e) {

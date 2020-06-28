@@ -1,6 +1,4 @@
-package com.packettracer.grader.args.exceptions;
-
-import com.packettracer.grader.args.exceptions.ParseError;
+package com.packettracer.args.exceptions;
 
 public class IntegerParsingError extends ParseError {
     public IntegerParsingError(String errorMessage) {

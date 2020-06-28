@@ -1,8 +1,8 @@
 package com.packettracer.grader.exceptions;
 
-import com.packettracer.grader.Constants;
+import com.packettracer.grader.Grader;
 
-public class WrongCredentialsError extends BaseGraderError {
+public class WrongCredentialsError extends GeneralError {
     public WrongCredentialsError(String errorMessage) {
         super(errorMessage);
     }
@@ -12,7 +12,7 @@ public class WrongCredentialsError extends BaseGraderError {
     }
 
     @Override
-    public Constants.ExitStatus getExitStatus() {
-        return Constants.ExitStatus.WRONG_CREDENTIALS;
+    public Integer getExitStatus() {
+        return Grader.WRONG_CREDENTIALS;
     }
 }
