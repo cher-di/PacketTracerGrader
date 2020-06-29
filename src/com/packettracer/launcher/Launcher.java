@@ -4,6 +4,7 @@ import com.cisco.pt.launcher.PacketTracerLaunchException;
 import com.packettracer.args.ArgsParser;
 import com.packettracer.args.exceptions.ArgumentAlreadyExists;
 import com.packettracer.args.exceptions.ParseError;
+import com.packettracer.args.exceptions.ReturnCodeAlreadyExists;
 import com.packettracer.args.parsers.BooleanDefaultFalseParser;
 import com.packettracer.args.parsers.PortParser;
 import org.apache.commons.cli.Option;
@@ -22,7 +23,7 @@ public class Launcher {
     private static final Integer RETURN_CODE_ARGS_PARSING_ERROR = 1;
     private static final Integer RETURN_CODE_LAUNCH_ERROR = 2;
 
-    public static void main(String[] args) throws ArgumentAlreadyExists {
+    public static void main(String[] args) throws ArgumentAlreadyExists, ReturnCodeAlreadyExists {
         ArgsParser parser = makeArgsParser();
         HashMap<String, Object> parsedArgs = null;
 
@@ -45,14 +46,14 @@ public class Launcher {
         }
     }
 
-    private static ArgsParser makeArgsParser() throws ArgumentAlreadyExists {
+    private static ArgsParser makeArgsParser() throws ArgumentAlreadyExists, ReturnCodeAlreadyExists {
         ArgsParser parser = new ArgsParser(APP_NAME);
 
         parser.addParameter(ARG_NAME_PORT,
                 Option.builder(getFirstLetter(ARG_NAME_PORT))
                         .longOpt(ARG_NAME_PORT)
                         .hasArg(true)
-                        .desc("Port to connect to Packet tracer via IPC")
+                        .desc("Port to connect to Packet Tracer via IPC")
                         .argName(ARG_NAME_PORT)
                         .required(false)
                         .type(String.class)
@@ -66,6 +67,9 @@ public class Launcher {
                         .argName(ARG_NAME_NOGUI)
                         .required(false)
                         .build(), new BooleanDefaultFalseParser());
+
+        parser.addReturnCode(RETURN_CODE_ARGS_PARSING_ERROR, "Arguments parsing error");
+        parser.addReturnCode(RETURN_CODE_LAUNCH_ERROR, "An error occurred while launching Packet Tracer");
 
         return parser;
     }

@@ -13,6 +13,6 @@ public class WrongCredentialsError extends GeneralError {
 
     @Override
     public Integer getReturnCode() {
-        return Grader.WRONG_CREDENTIALS;
+        return Grader.RETURN_CODE_WRONG_CREDENTIALS;
     }
 }

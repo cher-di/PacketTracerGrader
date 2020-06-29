@@ -13,6 +13,6 @@ public class OutputFileWritingError extends GeneralError {
 
     @Override
     public Integer getReturnCode() {
-        return Grader.OUTPUT_FILE_WRITING_FAILED;
+        return Grader.RETURN_CODE_OUTPUT_FILE_WRITING_FAILED;
     }
 }

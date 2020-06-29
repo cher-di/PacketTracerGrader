@@ -12,6 +12,6 @@ public class GeneralError extends Exception {
     }
 
     public Integer getReturnCode() {
-        return Grader.GENERAL_ERROR;
+        return Grader.RETURN_CODE_GENERAL_ERROR;
     }
 }

@@ -13,6 +13,6 @@ public class WrongPasswordError extends GeneralError {
 
     @Override
     public Integer getReturnCode() {
-        return Grader.WRONG_PASSWORD;
+        return Grader.RETURN_CODE_WRONG_PASSWORD;
     }
 }

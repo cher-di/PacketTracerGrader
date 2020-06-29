@@ -1,10 +1,10 @@
 package com.packettracer.grader;
 
-import com.cisco.pt.ipc.ui.IPC;
 import com.packettracer.Constants;
 import com.packettracer.args.ArgsParser;
 import com.packettracer.args.exceptions.ArgumentAlreadyExists;
 import com.packettracer.args.exceptions.ParseError;
+import com.packettracer.args.exceptions.ReturnCodeAlreadyExists;
 import com.packettracer.args.parsers.*;
 import com.packettracer.grader.exceptions.*;
 import org.apache.commons.cli.Option;
@@ -46,13 +46,13 @@ public class Grader {
 
     private static final Integer CHECK_ALIVE_TIME_DELTA = 500;
 
-    public static final Integer GENERAL_ERROR = 1;
-    public static final Integer ARGUMENTS_PARSING_FAILED = 2;
-    public static final Integer INPUT_FILE_READING_FAILED = 3;
-    public static final Integer OUTPUT_FILE_WRITING_FAILED = 4;
-    public static final Integer UNABLE_TO_CONNECT = 5;
-    public static final Integer WRONG_PASSWORD = 6;
-    public static final Integer WRONG_CREDENTIALS = 7;
+    public static final Integer RETURN_CODE_GENERAL_ERROR = 1;
+    public static final Integer RETURN_CODE_WRONG_CREDENTIALS = 2;
+    public static final Integer RETURN_CODE_UNABLE_TO_CONNECT = 3;
+    public static final Integer RETURN_CODE_ARGUMENTS_PARSING_FAILED = 4;
+    public static final Integer RETURN_CODE_INPUT_FILE_READING_FAILED = 5;
+    public static final Integer RETURN_CODE_OUTPUT_FILE_WRITING_FAILED = 6;
+    public static final Integer RETURN_CODE_WRONG_PASSWORD = 7;
 
     public static void main(String[] args) throws Exception {
         ArgsParser parser = makeArgsParser();
@@ -63,7 +63,7 @@ public class Grader {
         } catch (ParseError e) {
             System.err.println(e.getMessage());
             parser.printHelp();
-            System.exit(ARGUMENTS_PARSING_FAILED);
+            System.exit(RETURN_CODE_ARGUMENTS_PARSING_FAILED);
         }
 
         String input = (String) parsedArgs.get(ARG_NAME_INPUT);
@@ -89,7 +89,7 @@ public class Grader {
             System.exit(e.getReturnCode());
         } catch (Throwable e) {
             System.err.println(String.format("Unknown error: %s", e.getMessage()));
-            System.exit(GENERAL_ERROR);
+            System.exit(RETURN_CODE_GENERAL_ERROR);
         }
     }
 
@@ -116,7 +116,7 @@ public class Grader {
         return runnable.getActivityData();
     }
 
-    private static ArgsParser makeArgsParser() throws ArgumentAlreadyExists {
+    private static ArgsParser makeArgsParser() throws ArgumentAlreadyExists, ReturnCodeAlreadyExists {
         ArgsParser parser = new ArgsParser(APP_NAME);
 
         parser.addParameter(ARG_NAME_INPUT,
@@ -143,7 +143,7 @@ public class Grader {
                 Option.builder(getFirstLetter(ARG_NAME_OUTPUT))
                         .longOpt(ARG_NAME_OUTPUT)
                         .hasArg(true)
-                        .desc("Path to file to store results")
+                        .desc("Path to file to store results. If not specified, print results to stdout")
                         .argName(ARG_NAME_OUTPUT)
                         .required(false)
                         .type(String.class)
@@ -197,6 +197,14 @@ public class Grader {
                         .argName(ARG_NAME_PRETTY)
                         .required(false)
                         .build(), new BooleanDefaultFalseParser());
+
+        parser.addReturnCode(RETURN_CODE_GENERAL_ERROR, "General grader error");
+        parser.addReturnCode(RETURN_CODE_ARGUMENTS_PARSING_FAILED, "Arguments parsing failed");
+        parser.addReturnCode(RETURN_CODE_INPUT_FILE_READING_FAILED, "An error occurred while reading data from input file");
+        parser.addReturnCode(RETURN_CODE_OUTPUT_FILE_WRITING_FAILED, "An error occurred while writing data to output file");
+        parser.addReturnCode(RETURN_CODE_UNABLE_TO_CONNECT, "Unable to connect to Packet Tracer");
+        parser.addReturnCode(RETURN_CODE_WRONG_PASSWORD, "Wrong password");
+        parser.addReturnCode(RETURN_CODE_WRONG_CREDENTIALS, "Wrong credentials");
 
         return parser;
     }

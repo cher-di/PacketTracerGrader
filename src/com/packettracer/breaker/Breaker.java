@@ -4,9 +4,10 @@ import com.packettracer.Constants;
 import com.packettracer.args.ArgsParser;
 import com.packettracer.args.exceptions.ArgumentAlreadyExists;
 import com.packettracer.args.exceptions.ParseError;
+import com.packettracer.args.exceptions.ReturnCodeAlreadyExists;
 import com.packettracer.args.parsers.HostParser;
 import com.packettracer.args.parsers.PortParser;
-import com.packettracer.grader.exceptions.GeneralError;
+import com.packettracer.grader.exceptions.ConnectionError;
 import com.packettracer.utils.Session;
 import org.apache.commons.cli.Option;
 
@@ -15,14 +16,14 @@ import java.util.HashMap;
 import static com.packettracer.utils.Utils.*;
 
 public class Breaker {
-    private static final String APP_NAME = "Packet Tracer Launcher";
+    private static final String APP_NAME = "Packet Tracer Breaker";
 
     private static final String ARG_NAME_PORT = "port";
     private static final String ARG_NAME_HOST = "host";
 
     private static final Integer RETURN_CODE_ARGS_PARSING_ERROR = 1;
-    private static final Integer UNABLE_TO_CONNECT = 2;
-    private static final Integer GENERAL_ERROR = 3;
+    private static final Integer RETURN_CODE_UNABLE_TO_CONNECT = 2;
+    private static final Integer RETURN_CODE_GENERAL_ERROR = 3;
 
     private static final Integer ATTEMPTS = 10;
     private static final Integer DELAY = 500;
@@ -47,23 +48,23 @@ public class Breaker {
 
             session.getIpc().appWindow().exitNoConfirm(true);
             session.close();
-        } catch (GeneralError e) {
+        } catch (ConnectionError e) {
             System.err.println(e.getMessage());
-            System.exit(e.getReturnCode());
+            System.exit(RETURN_CODE_UNABLE_TO_CONNECT);
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            System.exit(GENERAL_ERROR);
+            System.exit(RETURN_CODE_GENERAL_ERROR);
         }
     }
 
-    private static ArgsParser makeArgsParser() throws ArgumentAlreadyExists {
+    private static ArgsParser makeArgsParser() throws ArgumentAlreadyExists, ReturnCodeAlreadyExists {
         ArgsParser parser = new ArgsParser(APP_NAME);
 
         parser.addParameter(ARG_NAME_PORT,
                 Option.builder(getFirstLetter(ARG_NAME_PORT))
                         .longOpt(ARG_NAME_PORT)
                         .hasArg(true)
-                        .desc("Port to connect to Packet tracer via IPC")
+                        .desc("Port to connect to Packet Tracer via IPC")
                         .argName(ARG_NAME_PORT)
                         .required(false)
                         .type(String.class)
@@ -78,6 +79,10 @@ public class Breaker {
                         .required(false)
                         .type(String.class)
                         .build(), new HostParser());
+
+        parser.addReturnCode(RETURN_CODE_ARGS_PARSING_ERROR, "Arguments parsing error");
+        parser.addReturnCode(RETURN_CODE_UNABLE_TO_CONNECT, "Unable to connect to Packet Tracer");
+        parser.addReturnCode(RETURN_CODE_GENERAL_ERROR, "General breaker error");
 
         return parser;
     }

@@ -13,6 +13,6 @@ public class InputFileReadingError extends GeneralError {
 
     @Override
     public Integer getReturnCode() {
-        return Grader.INPUT_FILE_READING_FAILED;
+        return Grader.RETURN_CODE_INPUT_FILE_READING_FAILED;
     }
 }
