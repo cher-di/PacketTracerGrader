@@ -1,9 +1,10 @@
 package com.packettracer.utils;
 
-import com.cisco.pt.ipc.ui.IPC;
 import com.cisco.pt.launcher.PacketTracerLaunchException;
 import com.cisco.pt.launcher.PacketTracerLauncher;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -15,7 +16,11 @@ public class Utils {
     }
 
     public static String getFirstLetter(String string) {
-        return string.substring(0, 1);
+        return getFirstLetters(string, 1);
+    }
+
+    public static String getFirstLetters(String string, int num) {
+        return string.substring(0, num);
     }
 
     public static String hashPassword(String password, List<Integer> challengeKey) throws NoSuchAlgorithmException {
@@ -34,5 +39,11 @@ public class Utils {
             result.append(Integer.toHexString((0x000000ff & b) | 0xffffff00).substring(6));
         }
         return result.toString().toUpperCase();
+    }
+
+    public static void writeDataToFile(String data, String filepath) throws IOException {
+        FileWriter writer = new FileWriter(filepath);
+        writer.write(data);
+        writer.flush();
     }
 }

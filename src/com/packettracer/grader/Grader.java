@@ -1,5 +1,6 @@
 package com.packettracer.grader;
 
+import com.cisco.pt.ipc.ui.IPC;
 import com.packettracer.Constants;
 import com.packettracer.args.ArgsParser;
 import com.packettracer.args.exceptions.ArgumentAlreadyExists;
@@ -10,7 +11,7 @@ import org.apache.commons.cli.Option;
 
 import java.util.HashMap;
 
-import static com.packettracer.utils.Utils.getFirstLetter;
+import static com.packettracer.utils.Utils.*;
 
 
 class GraderUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
@@ -41,6 +42,7 @@ public class Grader {
     private static final String ARG_NAME_ATTEMPTS = "attempts";
     private static final String ARG_NAME_OUTPUT = "output";
     private static final String ARG_NAME_DELAY = "delay";
+    private static final String ARG_NAME_PRETTY = "pretty";
 
     private static final Integer CHECK_ALIVE_TIME_DELTA = 500;
 
@@ -71,13 +73,17 @@ public class Grader {
         Integer port = (Integer) parsedArgs.get(ARG_NAME_PORT);
         Integer attempts = (Integer) parsedArgs.get(ARG_NAME_ATTEMPTS);
         Integer delay = (Integer) parsedArgs.get(ARG_NAME_DELAY);
+        Boolean pretty = (Boolean) parsedArgs.get(ARG_NAME_PRETTY);
 
         try {
             // Grade
             ActivityData activityData = grade(input, key, host, port, attempts, delay);
 
-            // Save data to JSON
-            activityData.toJsonFile(output);
+            String json = activityData.toJson(pretty);
+            if (output != null)
+                writeDataToFile(json, output);
+            else
+                System.out.println(json);
         } catch (GeneralError e) {
             System.err.println(e.getMessage());
             System.exit(e.getReturnCode());
@@ -139,7 +145,7 @@ public class Grader {
                         .hasArg(true)
                         .desc("Path to file to store results")
                         .argName(ARG_NAME_OUTPUT)
-                        .required(true)
+                        .required(false)
                         .type(String.class)
                         .build(), new DefaultParser());
 
@@ -183,6 +189,14 @@ public class Grader {
                         .required(false)
                         .type(Number.class)
                         .build(), new DelayParser());
+
+        parser.addParameter(ARG_NAME_PRETTY,
+                Option.builder(getFirstLetters(ARG_NAME_PRETTY, 2))
+                        .longOpt(ARG_NAME_PRETTY)
+                        .desc("If specified, grader return json in pretty printing format, otherwise json is returned as one string")
+                        .argName(ARG_NAME_PRETTY)
+                        .required(false)
+                        .build(), new BooleanDefaultFalseParser());
 
         return parser;
     }

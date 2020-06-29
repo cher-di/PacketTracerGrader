@@ -51,20 +51,22 @@ public class ActivityData {
     }
 
     public static ActivityData fromJsonFile(String filepath) throws FileNotFoundException {
-        Type ACTIVITY_DATA_TYPE = new TypeToken<ActivityData>() {}.getType();
+        Type ACTIVITY_DATA_TYPE = new TypeToken<ActivityData>() {
+        }.getType();
         Gson gson = new Gson();
         JsonReader reader = new JsonReader(new FileReader(filepath));
         return gson.fromJson(reader, ACTIVITY_DATA_TYPE);
     }
 
-    public void toJsonFile(String filepath) throws IOException {
-        Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .serializeNulls()
-                .create();
-        String json = gson.toJson(this);
-        FileWriter writer = new FileWriter(filepath);
-        writer.write(json);
-        writer.flush();
+    public String toJson(boolean pretty) {
+        if (pretty)
+            return new GsonBuilder()
+                    .setPrettyPrinting()
+                    .serializeNulls()
+                    .create().toJson(this);
+        else
+            return new GsonBuilder()
+                    .serializeNulls()
+                    .create().toJson(this);
     }
 }
