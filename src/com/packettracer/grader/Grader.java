@@ -101,7 +101,7 @@ public class Grader {
         }
         if (thread.isAlive()) {
             thread.interrupt();
-            throw new InputFileReadingError("PacketTracer not support this type of files");
+            throw new InputFileReadingError(String.format("PacketTracer not support this type of files: %s", input));
         }
 
         if (exceptionHandler.getUncaughtException() != null)
