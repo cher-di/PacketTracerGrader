@@ -9,10 +9,16 @@ public class AttemptsParser implements Parser {
     @Override
     public Integer parse(Object attempts) throws ParseError {
         String _attempts = (String) attempts;
+        int parsed_attempts;
         try {
-            return _attempts != null ? Integer.parseInt(_attempts) : Constants.DEFAULT_CONNECTION_ATTEMPTS_NUMBER;
+            parsed_attempts = _attempts != null ? Integer.parseInt(_attempts) : Constants.DEFAULT_ATTEMPTS;
         } catch (NumberFormatException e) {
             throw new IntegerParsingError(String.format("Can not parse attempts: %s", _attempts), e);
         }
+        if (parsed_attempts < Constants.MIN_ATTEMPTS || parsed_attempts > Constants.MAX_ATTEMPTS) {
+            throw new IntegerParsingError(String.format("Attempts number should be in range from %d to %d, got %d",
+                    Constants.MIN_ATTEMPTS, Constants.MAX_ATTEMPTS, parsed_attempts));
+        }
+        return parsed_attempts;
     }
 }

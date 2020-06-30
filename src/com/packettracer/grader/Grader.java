@@ -173,7 +173,8 @@ public class Grader {
                 Option.builder(getFirstLetter(ARG_NAME_ATTEMPTS))
                         .longOpt(ARG_NAME_ATTEMPTS)
                         .hasArg(true)
-                        .desc(String.format("Number of connection attempts (default: %d)", Constants.DEFAULT_CONNECTION_ATTEMPTS_NUMBER))
+                        .desc(String.format("Number of connection attempts in range from %d to %d (default: %d)",
+                                Constants.MIN_ATTEMPTS, Constants.MAX_ATTEMPTS, Constants.DEFAULT_ATTEMPTS))
                         .argName(ARG_NAME_ATTEMPTS)
                         .required(false)
                         .type(Number.class)
@@ -184,7 +185,7 @@ public class Grader {
                         .longOpt(ARG_NAME_DELAY)
                         .hasArg(true)
                         .desc(String.format("Delay between connection attempts in milliseconds, %d <= delay <= %d (default: %d)",
-                                Constants.MIN_CONNECTION_ATTEMPTS_DELAY, Constants.MAX_CONNECTION_ATTEMPTS_DELAY, Constants.DEFAULT_CONNECTION_ATTEMPTS_DELAY))
+                                Constants.MIN_DELAY, Constants.MAX_DELAY, Constants.DEFAULT_DELAY))
                         .argName(ARG_NAME_DELAY)
                         .required(false)
                         .type(Number.class)
