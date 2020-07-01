@@ -7,6 +7,8 @@ import com.packettracer.args.exceptions.ParseError;
 import com.packettracer.args.exceptions.ReturnCodeAlreadyExists;
 import com.packettracer.args.parsers.BooleanDefaultFalseParser;
 import com.packettracer.args.parsers.PortParser;
+import com.packettracer.grader.exceptions.ConnectionError;
+import com.packettracer.utils.Session;
 import org.apache.commons.cli.Option;
 
 import java.util.HashMap;
@@ -22,8 +24,13 @@ public class Launcher {
 
     private static final Integer RETURN_CODE_ARGS_PARSING_ERROR = 1;
     private static final Integer RETURN_CODE_LAUNCH_ERROR = 2;
+    private static final Integer RETURN_CODE_LISTENING_SAME_PORT_PROCESS_ALREADY_EXISTS = 3;
 
-    public static void main(String[] args) throws ArgumentAlreadyExists, ReturnCodeAlreadyExists {
+    private static final Integer ATTEMPTS = 3;
+    private static final Integer DELAY = 500;
+    private static final String HOST = "localhost";
+
+    public static void main(String[] args) throws Exception {
         ArgsParser parser = makeArgsParser();
         HashMap<String, Object> parsedArgs = null;
 
@@ -39,11 +46,21 @@ public class Launcher {
         Boolean noGui = (Boolean) parsedArgs.get(ARG_NAME_NOGUI);
 
         try {
-            launchPacketTracer(port, noGui);
-        } catch (PacketTracerLaunchException e) {
-            System.err.println(e.getMessage());
-            System.exit(RETURN_CODE_LAUNCH_ERROR);
+            // Check, if there if one existent Packet Tracer process listening this port
+            new Session(HOST, port, ATTEMPTS, DELAY);
+        } catch (ConnectionError connectionError) {
+            // No Packet Tracer processes listening same port
+            try {
+                launchPacketTracer(port, noGui);
+                System.exit(0);
+            } catch (PacketTracerLaunchException launchException) {
+                System.err.println(launchException.getMessage());
+                System.exit(RETURN_CODE_LAUNCH_ERROR);
+            }
         }
+        // There is another Packet Tracer process listening same port
+        System.err.println(String.format("There is another Packet Tracer process listening same port: %d", port));
+        System.exit(RETURN_CODE_LISTENING_SAME_PORT_PROCESS_ALREADY_EXISTS);
     }
 
     private static ArgsParser makeArgsParser() throws ArgumentAlreadyExists, ReturnCodeAlreadyExists {
@@ -70,6 +87,7 @@ public class Launcher {
 
         parser.addReturnCode(RETURN_CODE_ARGS_PARSING_ERROR, "Arguments parsing error");
         parser.addReturnCode(RETURN_CODE_LAUNCH_ERROR, "An error occurred while launching Packet Tracer");
+        parser.addReturnCode(RETURN_CODE_LISTENING_SAME_PORT_PROCESS_ALREADY_EXISTS, "Packet Tracer process, listening the same port, already exists");
 
         return parser;
     }
