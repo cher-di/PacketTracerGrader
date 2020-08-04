@@ -36,7 +36,7 @@ public class Grader {
     private static final String APP_NAME = "Packet Tracer Grader";
 
     private static final String ARG_NAME_INPUT = "input";
-    private static final String ARG_NAME_KEY = "ket";
+    private static final String ARG_NAME_KEY = "key";
     private static final String ARG_NAME_HOST = "host";
     private static final String ARG_NAME_PORT = "port";
     private static final String ARG_NAME_ATTEMPTS = "attempts";
