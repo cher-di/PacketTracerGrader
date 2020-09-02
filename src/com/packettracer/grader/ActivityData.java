@@ -46,7 +46,12 @@ public class ActivityData {
         this.percentageComplete = (float) activityFile.getPercentageComplete();
         this.percentageCompleteScore = (float) activityFile.getPercentageCompleteScore();
         this.addInfo = activityFile.getUserProfile().getAddInfo();
-        this.timeElapsed = activityFile.getTimeElapsed() / 1000;
+        int timeElapsedMilliseconds = activityFile.getTimeElapsed();
+        int timeElapsedSeconds = timeElapsedMilliseconds / 1000;
+        if (timeElapsedMilliseconds % 1000 != 0) {
+            timeElapsedSeconds++;
+        }
+        this.timeElapsed = timeElapsedSeconds;
         this.labID = activityFile.getVariableManager().getVariableByName(labIDVariableName).valueToString();
     }
 
