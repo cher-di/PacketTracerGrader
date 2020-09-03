@@ -11,10 +11,10 @@ import com.packettracer.grader.exceptions.ConnectionError;
 
 import java.io.IOException;
 
-import static com.packettracer.Constants.AUTH_APP;
-import static com.packettracer.Constants.AUTH_SECRET;
-
 public class Session {
+    private static final String AUTH_SECRET = "cisco";
+    private static final String AUTH_APP = "com.packettracer.grader";
+
     private final IPC ipc;
     private PacketTracerSession packetTracerSession;
 
