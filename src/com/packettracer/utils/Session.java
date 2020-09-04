@@ -12,7 +12,7 @@ import com.packettracer.grader.exceptions.ConnectionError;
 import java.io.IOException;
 
 public class Session {
-    private static final String AUTH_SECRET = "cisco";
+    private static final String AUTH_SECRET = "56FF8F31DA132A42AFD6408AFE8D04744358C7A86A9AC08980F730344A78059D";
     private static final String AUTH_APP = "com.packettracer.grader";
 
     private final IPC ipc;
