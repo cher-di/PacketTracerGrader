@@ -126,7 +126,6 @@ public class Grader {
             if (!thread.isAlive())
                 break;
             Thread.sleep(checkAliveDelay);
-            System.out.println(String.format("Check alive %d", i + 1));
         }
         if (thread.isAlive()) {
             thread.interrupt();
