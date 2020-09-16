@@ -1,61 +1,91 @@
 package com.packettracer.grader;
 
 import com.cisco.pt.ipc.system.ActivityFile;
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import com.google.gson.stream.JsonReader;
 
-import java.io.*;
-import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 
 public class ActivityData {
     private final String name;
     private final String email;
-    private final Float percentageComplete;
-    private final Float percentageCompleteScore;
     private final String addInfo;
+
+    private final Double percentageComplete;
+    private final Double percentageCompleteScore;
+
     private final Integer timeElapsed;
-    private final String labID;
+    private final Integer countDownTime;
+    private final Integer countDownTimeLeft;
 
-    private static final String labIDVariableName = "LabID";
+    private final List<String> components;
 
-    ActivityData(String name, String email, Float percentageComplete, Float percentageCompleteScore, String addInfo, Integer timeElapsed, String labID) {
-        this.name = name;
-        this.email = email;
-        this.percentageComplete = percentageComplete;
-        this.percentageCompleteScore = percentageCompleteScore;
-        this.addInfo = addInfo;
-        this.timeElapsed = timeElapsed;
-        this.labID = labID;
-    }
+    private final Double assessmentItemsCount;
+    private final Double correctAssessmentItemsCount;
+    private final Double correctAssessmentScoreCount;
 
-    ActivityData(ActivityData other) {
-        this.name = other.name;
-        this.email = other.email;
-        this.percentageComplete = other.percentageComplete;
-        this.percentageCompleteScore = other.percentageCompleteScore;
-        this.addInfo = other.addInfo;
-        this.timeElapsed = other.timeElapsed;
-        this.labID = other.labID;
-    }
+    private final String completedFeedback;
+    private final String incompleteFeedback;
+    private final String dynamicFeedbackString;
+
+    private final Double connectivityCount;
+
+    private final ArrayList<HashMap<String, String>> instructions;
+
+    private final HashMap<String, String> variables;
+
 
     ActivityData(ActivityFile activityFile) {
-        this.name = activityFile.getUserProfile().getName();
-        this.email = activityFile.getUserProfile().getEmail();
-        this.percentageComplete = (float) activityFile.getPercentageComplete();
-        this.percentageCompleteScore = (float) activityFile.getPercentageCompleteScore();
-        this.addInfo = activityFile.getUserProfile().getAddInfo();
-        this.timeElapsed = activityFile.getTimeElapsed();
-        this.labID = activityFile.getVariableManager().getVariableByName(labIDVariableName).valueToString();
+        name = activityFile.getUserProfile().getName();
+        email = activityFile.getUserProfile().getEmail();
+        addInfo = activityFile.getUserProfile().getAddInfo();
+
+        percentageComplete = activityFile.getPercentageComplete();
+        percentageCompleteScore = activityFile.getPercentageCompleteScore();
+
+        timeElapsed = activityFile.getTimeElapsed();
+        countDownTime = activityFile.getCountDownTime();
+        countDownTimeLeft = activityFile.getCountDownTimeLeft();
+
+        components = activityFile.getComponentList();
+
+        assessmentItemsCount = activityFile.getAssessmentItemsCount();
+        correctAssessmentItemsCount = activityFile.getCorrectAssessmentItemsCount();
+        correctAssessmentScoreCount = activityFile.getCorrectAssessmentScoreCount();
+
+        completedFeedback = activityFile.getCompletedFeedback();
+        incompleteFeedback = activityFile.getIncompleteFeedback();
+        dynamicFeedbackString = activityFile.getDyFeedbackString();
+
+        connectivityCount = activityFile.getConnectivityCount();
+
+        instructions = getInstructions(activityFile);
+
+        variables = getVariables(activityFile);
     }
 
-    public static ActivityData fromJsonFile(String filepath) throws FileNotFoundException {
-        Type ACTIVITY_DATA_TYPE = new TypeToken<ActivityData>() {
-        }.getType();
-        Gson gson = new Gson();
-        JsonReader reader = new JsonReader(new FileReader(filepath));
-        return gson.fromJson(reader, ACTIVITY_DATA_TYPE);
+    private static HashMap<String, String> getVariables(ActivityFile activityFile) {
+        return new HashMap<>() {{
+            var variableManager = activityFile.getVariableManager();
+            for (int i = 0; i < variableManager.getVariableSize(); i++) {
+                var variable = variableManager.getVariable(i);
+                put(variable.name(), variable.valueToString());
+            }
+        }};
+    }
+
+    private static ArrayList<HashMap<String, String>> getInstructions(ActivityFile activityFile) {
+        var instructions = new ArrayList<HashMap<String, String>>();
+        for (int i = 0; i < activityFile.getInstructionCount(); i++) {
+            int finalI = i;
+            instructions.add(new HashMap<>() {{
+                put("instruction", activityFile.getInstruction(finalI));
+                put("instructionSource", activityFile.getInstructionSource(finalI));
+            }});
+        }
+        return instructions;
     }
 
     public String toJson(boolean pretty) {
