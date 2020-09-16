@@ -29,7 +29,7 @@ public class ArgsParser {
 
     public HashMap<String, Object> parse(String[] args) throws ParseError {
         try {
-            var cmd = parser.parse(options, args);
+            CommandLine cmd = parser.parse(options, args);
             HashMap<String, Object> result = new HashMap<>();
             for (String argName : arguments.keySet()) {
                 Pair<String, Parser> pair = arguments.get(argName);

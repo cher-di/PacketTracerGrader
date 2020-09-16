@@ -1,6 +1,8 @@
 package com.packettracer.grader;
 
 import com.cisco.pt.ipc.system.ActivityFile;
+import com.cisco.pt.ipc.system.Variable;
+import com.cisco.pt.ipc.system.VariableManager;
 import com.google.gson.GsonBuilder;
 
 import java.util.ArrayList;
@@ -67,20 +69,20 @@ public class ActivityData {
     }
 
     private static HashMap<String, String> getVariables(ActivityFile activityFile) {
-        return new HashMap<>() {{
-            var variableManager = activityFile.getVariableManager();
+        return new HashMap<String, String>() {{
+            VariableManager variableManager = activityFile.getVariableManager();
             for (int i = 0; i < variableManager.getVariableSize(); i++) {
-                var variable = variableManager.getVariable(i);
+                Variable variable = variableManager.getVariable(i);
                 put(variable.name(), variable.valueToString());
             }
         }};
     }
 
     private static ArrayList<HashMap<String, String>> getInstructions(ActivityFile activityFile) {
-        var instructions = new ArrayList<HashMap<String, String>>();
+        ArrayList<HashMap<String, String>> instructions = new ArrayList<HashMap<String, String>>();
         for (int i = 0; i < activityFile.getInstructionCount(); i++) {
             int finalI = i;
-            instructions.add(new HashMap<>() {{
+            instructions.add(new HashMap<String, String>() {{
                 put("instruction", activityFile.getInstruction(finalI));
                 put("instructionSource", activityFile.getInstructionSource(finalI));
             }});

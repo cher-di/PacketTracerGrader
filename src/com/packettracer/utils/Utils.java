@@ -24,7 +24,7 @@ public class Utils {
     }
 
     public static String hashPassword(String password, List<Integer> challengeKey) throws NoSuchAlgorithmException {
-        var salt = challengeKey.toArray();
+        Object[] salt = challengeKey.toArray();
         byte[] array = new byte[salt.length];
         for (int i = 0; i < salt.length; i++) {
             array[i] = (byte) (int) salt[i];
